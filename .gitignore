@@ -1,0 +1,31 @@
+#
+# Standard Maven .gitignore
+#
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+#
+# IntelliJ
+#
+*.iml
+.idea/*
+!.idea/runConfigurations/
+
+#
+# Visual Studio Code
+#
+.settings/
+.classpath
+.factorypath
+.project
+.vscode/
+
+Text_Only_Ascii_Coll_MWI_NoSem.gz
+topics_M2WI7Q_2020_21.txt
