@@ -1,4 +1,4 @@
-package org.inex;
+package org.inex.Model;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;

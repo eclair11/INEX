@@ -1,12 +1,21 @@
-package org.inex;
+package org.inex.Model;
 
 import java.util.ArrayList;
 
 public class Request {
 
+	/***************/
+	/** VARIABLES **/
+	/***************/
+	
 	private String id;
 	
 	private ArrayList<String> termList;
+	
+	
+	/******************/
+	/** CONSTRUCTORS **/
+	/******************/
 	
 	public Request(){
 		
@@ -19,6 +28,11 @@ public class Request {
 			this.termList.add(term);
 		}
 	}
+	
+	
+	/*************************/
+	/** GETTERS AND SETTERS **/
+	/*************************/
 
 	public String getId() {
 		return id;
