@@ -157,7 +157,7 @@ public final class App {
 				s = s + requestList.get(i).getId();
 				s = s + " " + "Q0";
 				s = s + " " + it.next().toString().replace("=", " " + rank + " ");
-				s = s + " " + "EliasIbrahimaNicolas";
+				s = s + " " + "EliasNicolas";
 				s = s + " " + "/article[1]" + "\n";
 				rank++;
 			}
