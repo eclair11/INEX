@@ -1,5 +1,4 @@
-# INEX
-Projet de recherche d'information
+# RI Project INEX
 
-# Unknown XML Parsing Source
-https://howtodoinjava.com/java/xml/read-xml-dom-parser-example/?fbclid=IwAR0GjVy19P6oVsHnib3P1mpqwOaT7Z6UQwNpjqz2hYNviNlII2QBtoXNEDw
+## Code Sources
+- Unknown XML Parsing: [here](https://howtodoinjava.com/java/xml/read-xml-dom-parser-example/)
