@@ -1,11 +1,11 @@
 package org.inex;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -28,8 +28,7 @@ public final class App {
 	private static final String PATH_QUERY = "./files/request/topics_M2WI7Q_2020_21.txt";
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
-	private static final String PATH_INPUT_SINGLE_XML = "./files/input/xml/612.xml";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_XX_XXX_articles.txt";
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_XX_XX_NNN_articles.txt";
 
 	/******************/
 	/** CONSTRUCTORS **/
@@ -43,7 +42,7 @@ public final class App {
 	/** FUNCTIONS **/
 	/***************/
 
-	private static void read() throws IOException {
+	private static void readTxt() throws IOException {
 
 		// Extraction du fichier texte de la liste de documents
 		ArrayList<Doc> docList = ParseTxt.extractTxt(PATH_INPUT_TXT);
@@ -62,6 +61,26 @@ public final class App {
 
 		/* Lancement de la construction du run du fichier */
 		algo(docList);
+
+	}
+
+	public static void readXml() throws IOException, ParserConfigurationException, SAXException {
+
+		ArrayList<Doc> docList = new ArrayList<>();
+
+		// Extraction de tous les fichiers dans un répertoire temporaire
+		ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
+
+		List<String> files = ParseXML.getXmlPathList();
+		for (String path : files) {
+			Doc doc = ParseXML.parseXmlFile(path);
+			docList.add(doc);
+		}
+
+		/* Lancement de la construction du run du fichier */
+		algo(docList);
+
+		// ParseXML.deleteTmpXmlFolder();
 
 	}
 
@@ -183,21 +202,8 @@ public final class App {
 	/**********/
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-		
-		//read();
-	
-		// Extration du fichier 612.xml
-		Doc document = ParseXML.parseXmlFile(PATH_INPUT_SINGLE_XML);
-		System.out.println(document.getContentList());
-		System.out.println("Id : " + document.getId());
-
-		// Extraction de tous les fichiers dans un répertoire temporaire
-		ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
-		ParseXML.displayList(50);
-		
-		
-		// ParseXML.deleteTmpXmlFolder();
-
+		readTxt();
+		readXml();
 	}
 
 }
