@@ -8,56 +8,61 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.inex.Model.Document;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.inex.Model.Doc;
 import org.inex.Model.Request;
 import org.inex.Parser.ParseRequest;
 import org.inex.Parser.ParseTxt;
+import org.inex.Parser.ParseXML;
 import org.inex.Utils.UtilAlgoCalculation;
+import org.xml.sax.SAXException;
 
 public final class App {
 
 	/***************/
 	/** CONSTANTS **/
 	/***************/
-	
+
 	private static final String PATH_QUERY = "./files/input/topics_M2WI7Q_2020_21.txt";
 	private static final String PATH_COLLECTION = "./files/input/Text_Only_Ascii_Coll_MWI_NoSem.gz";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_01_05_NNN_articles.txt";
-	
-	
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_XX_XXX_articles.txt";
+
 	/******************/
 	/** CONSTRUCTORS **/
 	/******************/
-	
-	private App() {
-		
-	}
 
+	private App() {
+
+	}
 
 	/***************/
 	/** FUNCTIONS **/
 	/***************/
-	
+
 	private static void read() throws IOException {
 
 		// Extraction du fichier texte de la liste de documents
-		ArrayList<Document> docList = ParseTxt.extractTxt(PATH_COLLECTION);
-		
-		/* Generation et affichage d'une serie de statistique sur les occurences des termes des requetes */
+		ArrayList<Doc> docList = ParseTxt.extractTxt(PATH_COLLECTION);
+
+		/*
+		 * Generation et affichage d'une serie de statistique sur les occurences des
+		 * termes des requetes
+		 */
 		// computeOccurenceByWord(docList, requestList);
 		// ArrayList<Result> resultList = computeOccurenceByWord(docList, requestList);
 		// displayResultList(resultList);
-		
+
 		/* Generation des statistiques d'un run */
-		// Run run = Run.generateRunStat("FirstRun", "txt", docList);	
+		// Run run = Run.generateRunStat("FirstRun", "txt", docList);
 		// Run.displayRun(run);
-		
-		/* Lancement de la construction du run du fichier */  
+
+		/* Lancement de la construction du run du fichier */
 		algo(docList);
 
 	}
 
-	public static void algo(ArrayList<Document> docList) throws IOException {
+	public static void algo(ArrayList<Doc> docList) throws IOException {
 
 		ArrayList<Request> requestList = ParseRequest.extractRequests(PATH_QUERY);
 		String s = "";
@@ -73,19 +78,19 @@ public final class App {
 			int j = 0;
 
 			for (String term : terms) {
-				
+
 				// delete special characters
 				term = term.replaceAll("[^0-9a-zA-Z]", "").toLowerCase();
-				
+
 				// compute term frequency in the request
 				for (String t : terms) {
 					if (term.equals(t.replaceAll("[^0-9a-zA-Z]", "").toLowerCase())) {
 						tf++;
 					}
 				}
-				
+
 				// compute the number of documents including the term
-				for (Document d : docList) {
+				for (Doc d : docList) {
 					for (String w : d.getContentList()) {
 						if (term.equals(w)) {
 							df++;
@@ -93,64 +98,65 @@ public final class App {
 						}
 					}
 				}
-				
+
 				// compute weight in the request
-				//Double weight = UtilAlgoCalculation.weightBNN();
-				//Double weight = UtilAlgoCalculation.weightNTN(tf, df, docList);
-				//Double weight = UtilAlgoCalculation.weightLTN(tf, df, docList);
-				//Double weight = UtilAlgoCalculation.weightBTN(df, docList);
+				// Double weight = UtilAlgoCalculation.weightBNN();
+				// Double weight = UtilAlgoCalculation.weightNTN(tf, df, docList);
+				// Double weight = UtilAlgoCalculation.weightLTN(tf, df, docList);
+				// Double weight = UtilAlgoCalculation.weightBTN(df, docList);
 				Double weight = UtilAlgoCalculation.weightNNN(tf);
-				
+
 				// add the weight to the list
 				weights.add(weight);
-				
+
 				// save the df of the term
 				dfs.add(df);
-				
+
 				// reset counters
 				tf = 0.0;
 				df = 0.0;
 			}
 
-			for (Document d : docList) {
+			for (Doc d : docList) {
 				double score = 0.0;
 				for (String term : terms) {
-					
+
 					// delete special characters
 					term = term.replaceAll("[^0-9a-zA-Z]", "").toLowerCase();
-					
+
 					// compute term frequency in the document
 					for (String w : d.getContentList()) {
 						if (term.equals(w)) {
 							tf++;
 						}
 					}
-					
+
 					// compute weight in the document
-					//Double weight = UtilAlgoCalculation.weightBNN();
-					//Double weight = UtilAlgoCalculation.weightNTN(tf, dfs.get(j), docList);
-					//Double weight = UtilAlgoCalculation.weightLTN(tf, dfs.get(j), docList);
-					//Double weight = UtilAlgoCalculation.weightBTN(dfs.get(j), docList);
+					// Double weight = UtilAlgoCalculation.weightBNN();
+					// Double weight = UtilAlgoCalculation.weightNTN(tf, dfs.get(j), docList);
+					// Double weight = UtilAlgoCalculation.weightLTN(tf, dfs.get(j), docList);
+					// Double weight = UtilAlgoCalculation.weightBTN(dfs.get(j), docList);
 					Double weight = UtilAlgoCalculation.weightNNN(tf);
-					
+
 					// compute the score
 					score = score + weight * weights.get(j);
-					
+
 					// reset counter
 					tf = 0.0;
-					
+
 					// pass to the next term's df and weight
 					j++;
 				}
-				
+
 				// save the score with the document id
 				scores.put(d.getId(), score / d.getContentList().size());
-				
+
 				// reset counter of term's df and weight
 				j = 0;
 			}
 
-			Stream<Map.Entry<String, Double>> sortedScores = scores.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue()));
+			Stream<Map.Entry<String, Double>> sortedScores = scores.entrySet().stream()
+					.sorted(Collections.reverseOrder(Map.Entry.comparingByValue()));
 			Iterator<Map.Entry<String, Double>> it = sortedScores.iterator();
 			int rank = 1;
 			while (rank <= 1500 && it.hasNext()) {
@@ -164,18 +170,20 @@ public final class App {
 
 		}
 
-		// G�n�ration du fichier de resultats d'un run 
+		// G�n�ration du fichier de resultats d'un run
 		ParseTxt.writeRunResult(s, PATH_OUTPUT);
 
 	}
 
-	
 	/**********/
 	/** MAIN **/
 	/**********/
-	
-	public static void main(String[] args) throws IOException {
+
+	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
 		read();
+		Doc document = ParseXML.extractXml("./files/input/612.xml");
+		System.out.println(document.getContentList());
+		System.out.println("Id : " + document.getId());
 	}
 
 }

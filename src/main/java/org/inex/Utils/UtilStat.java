@@ -2,17 +2,17 @@ package org.inex.Utils;
 
 import java.util.ArrayList;
 
-import org.inex.Model.Document;
+import org.inex.Model.Doc;
 import org.inex.Model.Request;
 import org.inex.Model.Result;
 
 public class UtilStat {
-	
+
 	/***************/
 	/** FUNCTIONS **/
 	/***************/
-	
-	public static void computeOccurenceByWordDisplay(ArrayList<Document> docList, ArrayList<Request> requestList) {
+
+	public static void computeOccurenceByWordDisplay(ArrayList<Doc> docList, ArrayList<Request> requestList) {
 		// Pour chaque requete
 		for (int i = 0; i < requestList.size(); i++) {
 			System.out.print("\nRequest numero " + requestList.get(i).getId() + " => ");
@@ -24,7 +24,8 @@ public class UtilStat {
 					String currenTermRequest = requestList.get(i).getTermList().get(k);
 					System.out.print("\n\t\tTerm NB -> " + requestList.get(i).getTermList().get(k).toString() + ": ");
 					int nbOcc = 0;
-					// Pour chacun des mots contenus dans un document identifie, on compare avec le terme courant
+					// Pour chacun des mots contenus dans un document identifie, on compare avec le
+					// terme courant
 					for (int l = 0; l < docList.get(j).getContentList().size(); l++) {
 						String currenTermVerif = docList.get(j).getContentList().get(l);
 						if (currenTermRequest.equals(currenTermVerif)) {
@@ -38,8 +39,8 @@ public class UtilStat {
 			}
 		}
 	}
-	
-	public static ArrayList<Result> computeOccurenceByWord(ArrayList<Document> docList, ArrayList<Request> requestList) {
+
+	public static ArrayList<Result> computeOccurenceByWord(ArrayList<Doc> docList, ArrayList<Request> requestList) {
 		ArrayList<Result> resultList = new ArrayList<>();
 		// Pour chaque requ�te
 		for (int i = 0; i < requestList.size(); i++) {
@@ -65,7 +66,8 @@ public class UtilStat {
 						}
 					}
 					requestCurrentTermOccurrence = Integer.toString(nbOcc);
-					resultList.add(new Result(requestId, documentId, requestCurrentTermName, requestCurrentTermOccurrence, Integer.toString(0)));
+					resultList.add(new Result(requestId, documentId, requestCurrentTermName,
+							requestCurrentTermOccurrence, Integer.toString(0)));
 				}
 			}
 		}

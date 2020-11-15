@@ -11,18 +11,18 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 
-import org.inex.Model.Document;
+import org.inex.Model.Doc;
 
 public class ParseTxt {
-	
+
 	/***************/
 	/** FUNCTIONS **/
 	/***************/
-	
-	public static ArrayList<Document> extractTxt (String pathInputTxt) throws IOException{
-		
-		ArrayList<Document> docList = new ArrayList<>();
-		
+
+	public static ArrayList<Doc> extractTxt(String pathInputTxt) throws IOException {
+
+		ArrayList<Doc> docList = new ArrayList<>();
+
 		String docId = "";
 		boolean tagOpen = false;
 		boolean enCours = false;
@@ -47,7 +47,7 @@ public class ParseTxt {
 				lineFinal = lineFinal.concat(line + " ");
 			}
 			if (line.contains("</doc>")) {
-				docList.add(new Document(docId, lineFinal));
+				docList.add(new Doc(docId, lineFinal));
 				lineFinal = "";
 				tagOpen = false;
 				enCours = false;
@@ -55,16 +55,14 @@ public class ParseTxt {
 		}
 
 		buffered.close();
-		
+
 		return docList;
 	}
-	
-	
+
 	public static void writeRunResult(String s, String pathRunOutput) throws IOException {
 		FileWriter writer = new FileWriter(pathRunOutput);
 		writer.write(s);
 		writer.close();
 	}
-	
 
 }
