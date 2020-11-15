@@ -1,6 +1,7 @@
 package org.inex;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,8 +25,10 @@ public final class App {
 	/** CONSTANTS **/
 	/***************/
 
-	private static final String PATH_QUERY = "./files/input/topics_M2WI7Q_2020_21.txt";
-	private static final String PATH_COLLECTION = "./files/input/Text_Only_Ascii_Coll_MWI_NoSem.gz";
+	private static final String PATH_QUERY = "./files/request/topics_M2WI7Q_2020_21.txt";
+	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
+	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
+	private static final String PATH_INPUT_SINGLE_XML = "./files/input/xml/612.xml";
 	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_XX_XXX_articles.txt";
 
 	/******************/
@@ -43,7 +46,7 @@ public final class App {
 	private static void read() throws IOException {
 
 		// Extraction du fichier texte de la liste de documents
-		ArrayList<Doc> docList = ParseTxt.extractTxt(PATH_COLLECTION);
+		ArrayList<Doc> docList = ParseTxt.extractTxt(PATH_INPUT_TXT);
 
 		/*
 		 * Generation et affichage d'une serie de statistique sur les occurences des
@@ -170,7 +173,7 @@ public final class App {
 
 		}
 
-		// G�n�ration du fichier de resultats d'un run
+		// Generation du fichier de resultats d'un run
 		ParseTxt.writeRunResult(s, PATH_OUTPUT);
 
 	}
@@ -180,10 +183,21 @@ public final class App {
 	/**********/
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-		read();
-		Doc document = ParseXML.extractXml("./files/input/612.xml");
+		
+		//read();
+	
+		// Extration du fichier 612.xml
+		Doc document = ParseXML.parseXmlFile(PATH_INPUT_SINGLE_XML);
 		System.out.println(document.getContentList());
 		System.out.println("Id : " + document.getId());
+
+		// Extraction de tous les fichiers dans un répertoire temporaire
+		ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
+		ParseXML.displayList(50);
+		
+		
+		// ParseXML.deleteTmpXmlFolder();
+
 	}
 
 }
