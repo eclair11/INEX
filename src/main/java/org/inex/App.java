@@ -1,11 +1,11 @@
 package org.inex;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -43,7 +43,7 @@ public final class App {
 	/** FUNCTIONS **/
 	/***************/
 
-	private static void read() throws IOException {
+	private static void readTxt() throws IOException {
 
 		// Extraction du fichier texte de la liste de documents
 		ArrayList<Doc> docList = ParseTxt.extractTxt(PATH_INPUT_TXT);
@@ -62,6 +62,26 @@ public final class App {
 
 		/* Lancement de la construction du run du fichier */
 		algo(docList);
+
+	}
+
+	public static void readXml() throws IOException, ParserConfigurationException, SAXException {
+
+		ArrayList<Doc> docList = new ArrayList<>();
+
+		// Extraction de tous les fichiers dans un répertoire temporaire
+		ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
+
+		List<String> files = ParseXML.getXmlPathList();
+		for (String path : files) {
+			Doc doc = ParseXML.parseXmlFile(path);
+			docList.add(doc);
+		}
+
+		/* Lancement de la construction du run du fichier */
+		algo(docList);
+
+		// ParseXML.deleteTmpXmlFolder();
 
 	}
 
@@ -184,8 +204,8 @@ public final class App {
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
 		
-		read();
-
+		readTxt();
+		// readXml();
 	
 		/******************/
 		/* Extraction xml */
@@ -203,6 +223,7 @@ public final class App {
 		
 		// ParseXML.deleteTmpXmlFolder();
 
+		
 	}
 
 }

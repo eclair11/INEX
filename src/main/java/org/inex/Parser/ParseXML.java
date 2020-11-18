@@ -90,7 +90,7 @@ public class ParseXML {
 	}
 
 	// Moves all *.xml files from all subfolders to the root directory.
-	// TODO Doit être retravaillée, a un problème */
+	// Doit être retravaillée, a un problème
 	public static void filesGathering() throws IOException {
 		List<String> fileList = getXmlPathList();
 
@@ -143,12 +143,13 @@ public class ParseXML {
 
 		// Visit all child nodes of id
 		String id = visitChildNodes(iList);
+		String[] ids = id.trim().split(" ");
 
 		// Visit all child nodes of article
 		String content = visitChildNodes(nList);
 
 		// Add id and content to doc and return it
-		return new Doc(id, content);
+		return new Doc(ids[0], content);
 	}
 
 	private static String visitChildNodes(NodeList nList) {
