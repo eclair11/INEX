@@ -1,21 +1,53 @@
 package org.inex.Model;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
+import org.inex.Utils.UtilTextTransformation;
+
 public class Doc {
 
+	/***************/
+	/** VARIABLES **/
+	/***************/
+
 	private String id;
+
 	private String content;
+
 	private ArrayList<String> contentList;
+
+	/***************/
+	/** FUNCTIONS **/
+	/***************/
+
+	private String contentTransform(String content) {
+
+		return content;
+	}
+
+	private ArrayList<String> generateContentList() {
+
+		ArrayList<String> contentList = new ArrayList<>();
+
+		return contentList;
+	}
+
+	/******************/
+	/** CONSTRUCTORS **/
+	/******************/
 
 	public Doc() {
 	}
 
-	public Doc(String id, String content) {
+	public Doc(String id, String content) throws IOException {
 		this.setId(id);
 		this.setContent(content);
 
+		this.contentList = UtilTextTransformation.cleanContentList(content);
+
+		/*
 		content = content.replaceAll("[^a-zA-Z]", " ").toLowerCase().concat(" ");
 		String[] words = content.split(" ");
 		this.contentList = new ArrayList<String>();
@@ -25,8 +57,14 @@ public class Doc {
 			}
 
 		}
+		*/
 
 	}
+
+
+	/*************************/
+	/** GETTERS AND SETTERS **/
+	/*************************/
 
 	public String getId() {
 		return id;

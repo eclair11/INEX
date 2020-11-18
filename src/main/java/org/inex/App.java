@@ -29,7 +29,7 @@ public final class App {
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
 	private static final String PATH_INPUT_SINGLE_XML = "./files/input/xml/612.xml";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_XX_XXX_articles.txt";
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_03_XX_XXX_articles.txt";
 
 	/******************/
 	/** CONSTRUCTORS **/
@@ -83,7 +83,7 @@ public final class App {
 			for (String term : terms) {
 
 				// delete special characters
-				term = term.replaceAll("[^0-9a-zA-Z]", "").toLowerCase();
+				// term = term.replaceAll("[^0-9a-zA-Z]", "").toLowerCase();
 
 				// compute term frequency in the request
 				for (String t : terms) {
@@ -125,7 +125,7 @@ public final class App {
 				for (String term : terms) {
 
 					// delete special characters
-					term = term.replaceAll("[^0-9a-zA-Z]", "").toLowerCase();
+					//term = term.replaceAll("[^0-9a-zA-Z]", "").toLowerCase();
 
 					// compute term frequency in the document
 					for (String w : d.getContentList()) {
@@ -184,8 +184,13 @@ public final class App {
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
 		
-		//read();
+		read();
+
 	
+		/******************/
+		/* Extraction xml */
+		/******************/
+		/* 
 		// Extration du fichier 612.xml
 		Doc document = ParseXML.parseXmlFile(PATH_INPUT_SINGLE_XML);
 		System.out.println(document.getContentList());
@@ -194,7 +199,7 @@ public final class App {
 		// Extraction de tous les fichiers dans un répertoire temporaire
 		ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
 		ParseXML.displayList(50);
-		
+		 */
 		
 		// ParseXML.deleteTmpXmlFolder();
 
