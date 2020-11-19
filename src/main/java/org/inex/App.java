@@ -29,7 +29,7 @@ public final class App {
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
 	private static final String PATH_INPUT_SINGLE_XML = "./files/input/xml/612.xml";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_03_XX_XXX_articles.txt";
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_04_XX_XXX_articles.txt";
 
 	/******************/
 	/** CONSTRUCTORS **/
@@ -43,10 +43,10 @@ public final class App {
 	/** FUNCTIONS **/
 	/***************/
 
-	private static void readTxt() throws IOException {
+	private static void readTxt(boolean applyStemming) throws IOException {
 
 		// Extraction du fichier texte de la liste de documents
-		ArrayList<Doc> docList = ParseTxt.extractTxt(PATH_INPUT_TXT);
+		ArrayList<Doc> docList = ParseTxt.extractTxt(PATH_INPUT_TXT, applyStemming);
 
 		/*
 		 * Generation et affichage d'une serie de statistique sur les occurences des
@@ -61,11 +61,11 @@ public final class App {
 		// Run.displayRun(run);
 
 		/* Lancement de la construction du run du fichier */
-		algo(docList);
+		algo(docList, applyStemming);
 
 	}
 
-	public static void readXml() throws IOException, ParserConfigurationException, SAXException {
+	public static void readXml(boolean applyStemming) throws IOException, ParserConfigurationException, SAXException {
 
 		ArrayList<Doc> docList = new ArrayList<>();
 
@@ -74,20 +74,21 @@ public final class App {
 
 		List<String> files = ParseXML.getXmlPathList();
 		for (String path : files) {
-			Doc doc = ParseXML.parseXmlFile(path);
+			Doc doc = ParseXML.parseXmlFile(path, applyStemming);
 			docList.add(doc);
 		}
 
 		/* Lancement de la construction du run du fichier */
-		algo(docList);
+		algo(docList, applyStemming);
 
 		// ParseXML.deleteTmpXmlFolder();
 
 	}
 
-	public static void algo(ArrayList<Doc> docList) throws IOException {
+	public static void algo(ArrayList<Doc> docList, boolean applyStemming) throws IOException {
 
-		ArrayList<Request> requestList = ParseRequest.extractRequests(PATH_QUERY);
+		ArrayList<Request> requestList = ParseRequest.extractRequests(PATH_QUERY, applyStemming);
+		System.out.println(requestList.toString());
 		String s = "";
 
 		for (int i = 0; i < requestList.size(); i++) {
@@ -204,8 +205,8 @@ public final class App {
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
 		
-		readTxt();
-		// readXml();
+		readTxt(true);
+		// readXml(true);
 	
 		/******************/
 		/* Extraction xml */

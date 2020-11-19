@@ -41,11 +41,11 @@ public class Doc {
 	public Doc() {
 	}
 
-	public Doc(String id, String content) throws IOException {
+	public Doc(String id, String content, boolean applyStemming) throws IOException {
 		this.setId(id);
 		this.setContent(content);
 
-		this.contentList = UtilTextTransformation.cleanContentList(content);
+		this.contentList = UtilTextTransformation.cleanContentList(content, applyStemming);
 
 		/*
 		content = content.replaceAll("[^a-zA-Z]", " ").toLowerCase().concat(" ");

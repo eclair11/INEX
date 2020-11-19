@@ -19,7 +19,7 @@ public class ParseTxt {
 	/** FUNCTIONS **/
 	/***************/
 
-	public static ArrayList<Doc> extractTxt(String pathInputTxt) throws IOException {
+	public static ArrayList<Doc> extractTxt(String pathInputTxt, boolean applyStemming) throws IOException {
 
 		ArrayList<Doc> docList = new ArrayList<>();
 
@@ -47,7 +47,7 @@ public class ParseTxt {
 				lineFinal = lineFinal.concat(line + " ");
 			}
 			if (line.contains("</doc>")) {
-				docList.add(new Doc(docId, lineFinal));
+				docList.add(new Doc(docId, lineFinal, applyStemming));
 				lineFinal = "";
 				tagOpen = false;
 				enCours = false;

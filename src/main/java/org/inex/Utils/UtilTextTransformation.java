@@ -108,6 +108,24 @@ public class UtilTextTransformation {
 
     public static ArrayList<String> stemmingWord(ArrayList<String> contentList) {
 
+        String currentTerm = "";
+
+        for (int i = 0; i < contentList.size(); i++) {
+
+            EnglishStemmer stemmer = new EnglishStemmer();
+
+            currentTerm = contentList.get(i);
+
+            stemmer.setCurrent(currentTerm);
+            if (stemmer.stem()) {
+                currentTerm = stemmer.getCurrent();
+            }
+
+            
+            contentList.set(i, currentTerm);
+        }
+
+        /*
         contentList.forEach(term -> {
             EnglishStemmer stemmer = new EnglishStemmer();
             stemmer.setCurrent(term);
@@ -115,6 +133,7 @@ public class UtilTextTransformation {
                 term = stemmer.getCurrent();
             }
         });
+        */
 
         return contentList;
     }
@@ -123,11 +142,13 @@ public class UtilTextTransformation {
         contentList.forEach(System.out::println);
     }
 
-    public static ArrayList<String> cleanContentList(String content) throws IOException {
+    public static ArrayList<String> cleanContentList(String content, boolean applyStemming) throws IOException {
 
         ArrayList<String> contentList = tokenizeContent(content, new StopAnalyzer());
         contentList = normalizeContentList(contentList);
-        // contentList = stemmingWord(contentList);
+        if(applyStemming){
+            contentList = stemmingWord(contentList);
+        }
 
         return contentList;
 

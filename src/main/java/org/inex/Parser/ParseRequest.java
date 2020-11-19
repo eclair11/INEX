@@ -10,7 +10,7 @@ import org.inex.Model.Request;
 
 public class ParseRequest {
 	
-	public static ArrayList<Request> extractRequests(String pathRequest) throws FileNotFoundException, IOException {
+	public static ArrayList<Request> extractRequests(String pathRequest, boolean applyStemming) throws FileNotFoundException, IOException {
 		ArrayList<Request> requestList = new ArrayList<>();
 		File q = new File(pathRequest);
 		Scanner reader = new Scanner(q);
@@ -24,7 +24,7 @@ public class ParseRequest {
 			// get the request words
 			String[] terms = input[1].split(" ");
 			// add the request to the list of requests
-			requestList.add(new Request(code, terms));
+			requestList.add(new Request(code, terms, applyStemming));
 		}
 		reader.close();
 		return requestList;

@@ -116,7 +116,7 @@ public class ParseXML {
 	/** Extract XML **/
 	/*****************/
 
-	public static Doc parseXmlFile(String pathInputXml) throws ParserConfigurationException, SAXException, IOException {
+	public static Doc parseXmlFile(String pathInputXml, boolean applyStemming) throws ParserConfigurationException, SAXException, IOException {
 		// Get Document Builder
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
@@ -149,7 +149,7 @@ public class ParseXML {
 		String content = visitChildNodes(nList);
 
 		// Add id and content to doc and return it
-		return new Doc(ids[0], content);
+		return new Doc(ids[0], content, applyStemming);
 	}
 
 	private static String visitChildNodes(NodeList nList) {
