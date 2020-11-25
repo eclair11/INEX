@@ -28,71 +28,55 @@ public final class App {
 	private static final String PATH_QUERY = "./files/request/topics_M2WI7Q_2020_21.txt";
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
-	private static final String PATH_INPUT_SINGLE_XML = "./files/input/xml/612.xml";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_04_XX_XXX_articles.txt";
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_01_03_ltn_articles.txt";
 
 	/******************/
 	/** CONSTRUCTORS **/
 	/******************/
 
 	private App() {
-
 	}
 
 	/***************/
 	/** FUNCTIONS **/
 	/***************/
 
-	private static void readTxt(boolean applyStemming) throws IOException {
-
+	public static void readTxt(boolean applyStemming) throws IOException {
 		// Extraction du fichier texte de la liste de documents
 		ArrayList<Doc> docList = ParseTxt.extractTxt(PATH_INPUT_TXT, applyStemming);
 
-		/*
-		 * Generation et affichage d'une serie de statistique sur les occurences des
-		 * termes des requetes
-		 */
 		// computeOccurenceByWord(docList, requestList);
 		// ArrayList<Result> resultList = computeOccurenceByWord(docList, requestList);
 		// displayResultList(resultList);
-
-		/* Generation des statistiques d'un run */
 		// Run run = Run.generateRunStat("FirstRun", "txt", docList);
 		// Run.displayRun(run);
 
-		/* Lancement de la construction du run du fichier */
+		// Lancement de la construction du run du fichier
 		algo(docList, applyStemming);
-
 	}
 
 	public static void readXml(boolean applyStemming) throws IOException, ParserConfigurationException, SAXException {
-
 		ArrayList<Doc> docList = new ArrayList<>();
 
 		// Extraction de tous les fichiers dans un répertoire temporaire
 		ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
-
 		List<String> files = ParseXML.getXmlPathList();
 		for (String path : files) {
 			Doc doc = ParseXML.parseXmlFile(path, applyStemming);
 			docList.add(doc);
 		}
 
-		/* Lancement de la construction du run du fichier */
+		// Lancement de la construction du run du fichier
 		algo(docList, applyStemming);
-
 		// ParseXML.deleteTmpXmlFolder();
-
 	}
 
 	public static void algo(ArrayList<Doc> docList, boolean applyStemming) throws IOException {
-
 		ArrayList<Request> requestList = ParseRequest.extractRequests(PATH_QUERY, applyStemming);
 		System.out.println(requestList.toString());
 		String s = "";
 
 		for (int i = 0; i < requestList.size(); i++) {
-
 			ArrayList<String> terms = requestList.get(i).getTermList();
 			Map<String, Double> scores = new HashMap<>();
 			ArrayList<Double> weights = new ArrayList<>();
@@ -102,17 +86,12 @@ public final class App {
 			int j = 0;
 
 			for (String term : terms) {
-
-				// delete special characters
-				// term = term.replaceAll("[^0-9a-zA-Z]", "").toLowerCase();
-
 				// compute term frequency in the request
 				for (String t : terms) {
-					if (term.equals(t.replaceAll("[^0-9a-zA-Z]", "").toLowerCase())) {
+					if (term.equals(t)) {
 						tf++;
 					}
 				}
-
 				// compute the number of documents including the term
 				for (Doc d : docList) {
 					for (String w : d.getContentList()) {
@@ -122,60 +101,38 @@ public final class App {
 						}
 					}
 				}
-
 				// compute weight in the request
-				// Double weight = UtilAlgoCalculation.weightBNN();
-				// Double weight = UtilAlgoCalculation.weightNTN(tf, df, docList);
-				// Double weight = UtilAlgoCalculation.weightLTN(tf, df, docList);
-				// Double weight = UtilAlgoCalculation.weightBTN(df, docList);
-				Double weight = UtilAlgoCalculation.weightNNN(tf);
-
+				Double weight = UtilAlgoCalculation.weightLTN(tf, df, docList);
 				// add the weight to the list
 				weights.add(weight);
-
 				// save the df of the term
 				dfs.add(df);
-
 				// reset counters
 				tf = 0.0;
 				df = 0.0;
 			}
 
 			for (Doc d : docList) {
-				double score = 0.0;
+				Double score = 0.0;
 				for (String term : terms) {
-
-					// delete special characters
-					//term = term.replaceAll("[^0-9a-zA-Z]", "").toLowerCase();
-
 					// compute term frequency in the document
 					for (String w : d.getContentList()) {
 						if (term.equals(w)) {
 							tf++;
 						}
 					}
-
 					// compute weight in the document
-					// Double weight = UtilAlgoCalculation.weightBNN();
-					// Double weight = UtilAlgoCalculation.weightNTN(tf, dfs.get(j), docList);
-					// Double weight = UtilAlgoCalculation.weightLTN(tf, dfs.get(j), docList);
-					// Double weight = UtilAlgoCalculation.weightBTN(dfs.get(j), docList);
-					Double weight = UtilAlgoCalculation.weightNNN(tf);
-
+					Double weight = UtilAlgoCalculation.weightLTN(tf, dfs.get(j), docList);
 					// compute the score
 					score = score + weight * weights.get(j);
-
 					// reset counter
 					tf = 0.0;
-
 					// pass to the next term's df and weight
 					j++;
 				}
-
 				// save the score with the document id
-				scores.put(d.getId(), score / d.getContentList().size());
-
-				// reset counter of term's df and weight
+				scores.put(d.getId(), score);
+				// reset counter
 				j = 0;
 			}
 
@@ -191,12 +148,10 @@ public final class App {
 				s = s + " " + "/article[1]" + "\n";
 				rank++;
 			}
-
 		}
 
 		// Generation du fichier de resultats d'un run
 		ParseTxt.writeRunResult(s, PATH_OUTPUT);
-
 	}
 
 	/**********/
@@ -204,27 +159,8 @@ public final class App {
 	/**********/
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-		
-		readTxt(true);
-		// readXml(true);
-	
-		/******************/
-		/* Extraction xml */
-		/******************/
-		/* 
-		// Extration du fichier 612.xml
-		Doc document = ParseXML.parseXmlFile(PATH_INPUT_SINGLE_XML);
-		System.out.println(document.getContentList());
-		System.out.println("Id : " + document.getId());
-
-		// Extraction de tous les fichiers dans un répertoire temporaire
-		ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
-		ParseXML.displayList(50);
-		 */
-		
-		// ParseXML.deleteTmpXmlFolder();
-
-		
+		readTxt(false);
+		// readXml(false);
 	}
 
 }
