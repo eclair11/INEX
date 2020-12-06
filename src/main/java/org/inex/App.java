@@ -28,7 +28,7 @@ public final class App {
 	private static final String PATH_QUERY = "./files/request/topics_M2WI7Q_2020_21.txt";
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_01_03_ltn_articles.txt";
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_05_bm25_articles_k2b0.9stemming.txt";
 
 	/******************/
 	/** CONSTRUCTORS **/
@@ -52,7 +52,8 @@ public final class App {
 		// Run.displayRun(run);
 
 		// Lancement de la construction du run du fichier
-		algo(docList, applyStemming);
+		// algo(docList, applyStemming);
+		bm25(docList, applyStemming);
 	}
 
 	public static void readXml(boolean applyStemming) throws IOException, ParserConfigurationException, SAXException {
@@ -67,13 +68,89 @@ public final class App {
 		}
 
 		// Lancement de la construction du run du fichier
-		algo(docList, applyStemming);
+		// algo(docList, applyStemming);
 		// ParseXML.deleteTmpXmlFolder();
+		bm25(docList, applyStemming);
+	}
+
+	public static void bm25(ArrayList<Doc> docList, boolean applyStemming) throws IOException {
+		double k1 = 2;
+		double k2 = 100;
+		double b = 0.9;
+		double avg = 0;
+		for (Doc d : docList) {
+			avg = avg + d.getContentList().size();
+		}
+		avg = avg / docList.size();
+		ArrayList<Request> requestList = ParseRequest.extractRequests(PATH_QUERY, applyStemming);
+		Map<String, Double> scores = new HashMap<>();
+		String inex = "";
+		for (int i = 0; i < requestList.size(); i++) {
+			ArrayList<String> terms = requestList.get(i).getTermList();
+			System.err.println(terms);
+			ArrayList<Integer> listfq = new ArrayList<>();
+			ArrayList<Integer> listcd = new ArrayList<>();
+			for (String term : terms) {
+				int fq = 0;
+				for (String t : terms) {
+					if (term.equals(t)) {
+						fq++;
+					}
+				}
+				listfq.add(fq);
+				int cd = 0;
+				for (Doc d : docList) {
+					for (String t : d.getContentList()) {
+						if (term.equals(t)) {
+							cd++;
+							break;
+						}
+					}
+				}
+				listcd.add(cd);
+			}
+			for (Doc d : docList) {
+				double score = 0;
+				double k = k1 * ((1 - b) + b * (d.getContentList().size() / avg));
+				ArrayList<Integer> listfd = new ArrayList<>();
+				for (String term : terms) {
+					int fd = 0;
+					for (String t : d.getContentList()) {
+						if (term.equals(t)) {
+							fd++;
+						}
+					}
+					listfd.add(fd);
+				}
+				for (int j = 0; j < terms.size(); j++) {
+					int fq = listfq.get(j);
+					int cd = listcd.get(j);
+					int fd = listfd.get(j);
+					double p1 = Math.log10((0.5) / (0.5) / (cd + 0.5) / (docList.size() - cd + 0.5));
+					double p2 = fd * (k1 + 1) / (fd + k);
+					double p3 = fq * (k2 + 1) / (fq + k2);
+					score = score + Math.abs(p1) * p2 * p3;
+				}
+				scores.put(d.getId(), score);
+			}
+			Stream<Map.Entry<String, Double>> sortedScores = scores.entrySet().stream()
+					.sorted(Collections.reverseOrder(Map.Entry.comparingByValue()));
+			Iterator<Map.Entry<String, Double>> it = sortedScores.iterator();
+			int rank = 1;
+			while (rank <= 1500 && it.hasNext()) {
+				inex = inex + requestList.get(i).getId();
+				inex = inex + " " + "Q0";
+				inex = inex + " " + it.next().toString().replace("=", " " + rank + " ");
+				inex = inex + " " + "EliasNicolas";
+				inex = inex + " " + "/article[1]" + "\n";
+				rank++;
+			}
+		}
+		ParseTxt.writeRunResult(inex, PATH_OUTPUT);
 	}
 
 	public static void algo(ArrayList<Doc> docList, boolean applyStemming) throws IOException {
 		ArrayList<Request> requestList = ParseRequest.extractRequests(PATH_QUERY, applyStemming);
-		System.out.println(requestList.toString());
 		String s = "";
 
 		for (int i = 0; i < requestList.size(); i++) {
@@ -159,8 +236,8 @@ public final class App {
 	/**********/
 
 	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-		readTxt(false);
-		// readXml(false);
+		//readTxt(false);
+		readXml(true);
 	}
 
 }

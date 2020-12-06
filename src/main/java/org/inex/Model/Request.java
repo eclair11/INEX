@@ -33,7 +33,7 @@ public class Request {
 		} else {
 			this.termList = new ArrayList<String>();
 			for (String term : terms) {
-				this.termList.add(term);
+				this.termList.add(term.replaceAll("[^0-9a-zA-Z']", ""));
 			}
 		}
 
