@@ -1,7 +1,6 @@
 package org.inex.Parser;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -10,23 +9,22 @@ import org.inex.Model.Request;
 
 public class ParseRequest {
 	
-	public static ArrayList<Request> extractRequests(String pathRequest, boolean applyStemming) throws FileNotFoundException, IOException {
+	public static ArrayList<Request> extractRequests(String pathRequest, boolean applyStemming) {
 		ArrayList<Request> requestList = new ArrayList<>();
-		File q = new File(pathRequest);
-		Scanner reader = new Scanner(q);
-		while (reader.hasNextLine()) {
-			// read the request
-			String query = reader.nextLine().trim();
-			// split the request content
-			String[] input = query.split(" ", 2);
-			// get the request id
-			String code = input[0];
-			// get the request words
-			String[] terms = input[1].split(" ");
-			// add the request to the list of requests
-			requestList.add(new Request(code, terms, applyStemming));
+		try {
+			File q = new File(pathRequest);
+			Scanner reader = new Scanner(q);
+			while (reader.hasNextLine()) {
+				String query = reader.nextLine().trim();
+				String[] input = query.split(" ", 2);
+				String code = input[0];
+				String[] terms = input[1].split(" ");
+				requestList.add(new Request(code, terms, applyStemming));
+			}
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		reader.close();
 		return requestList;
 	}
 
