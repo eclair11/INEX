@@ -31,18 +31,18 @@ public class App {
 	private static final String PATH_QUERY = "./files/request/topics_M2WI7Q_2020_21.txt";
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_02_bm25_articles_k0.5b0.3stemming.txt";
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_XX_XX_XXX_articles.txt";
 
 	/**
 	 * Custom enum class to define weighting types
 	 */
 	public enum Weight {
-		LTN, BM25;
+		LTN, LTC, BM25;
 	}
 
 	public static void main(String[] args) {
-		// readTxt(true, Weight.BM25);
-		readXml(true, Weight.BM25);
+		// readTxt(false, Weight.LTN);
+		// readXml(false, Weight.LTN);
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class App {
 				docList.add(doc);
 			}
 			createRun(docList, applyStemming, weighting);
-			ParseXML.deleteTmpXmlFolder();
+			// ParseXML.deleteTmpXmlFolder();
 		} catch (IOException | ParserConfigurationException | SAXException e) {
 			e.printStackTrace();
 		}
@@ -95,20 +95,13 @@ public class App {
 		int docListSize = docList.size();
 		double avg = UtilWeightCompute.avg(docList);
 		Map<String, Double> scores = new HashMap<>();
+		Map<String, Double> norm = new HashMap<>();
 		String inex = "";
-		for (int i = 0; i < requestList.size(); i++) {
+		for (int i = 0; i < 1; i++) {
 			String id = requestList.get(i).getId();
 			ArrayList<String> terms = requestList.get(i).getTermList();
-			ArrayList<Integer> listfq = new ArrayList<>();
 			ArrayList<Integer> listcd = new ArrayList<>();
 			for (String term : terms) {
-				int fq = 0;
-				for (String t : terms) {
-					if (term.equals(t)) {
-						fq++;
-					}
-				}
-				listfq.add(fq);
 				int cd = 0;
 				for (Doc d : docList) {
 					for (String t : d.getContentList()) {
@@ -121,8 +114,9 @@ public class App {
 				listcd.add(cd);
 			}
 			for (Doc d : docList) {
-				double score = 0;
 				int docSize = d.getContentList().size();
+				double score = 0;
+				norm.put("value", 0.0);
 				ArrayList<Integer> listfd = new ArrayList<>();
 				for (String term : terms) {
 					int fd = 0;
@@ -134,10 +128,14 @@ public class App {
 					listfd.add(fd);
 				}
 				for (int j = 0; j < terms.size(); j++) {
-					int fq = listfq.get(j);
 					int cd = listcd.get(j);
 					int fd = listfd.get(j);
-					score = score + UtilWeightCompute.weight(fq, cd, fd, docSize, docListSize, avg, weighting);
+					score = score + UtilWeightCompute.weight(cd, fd, docSize, docListSize, avg, norm, weighting);
+				}
+				if (weighting.equals(Weight.LTC)) {
+					if (norm.get("value") != 0) {
+						score = score / Math.sqrt(norm.get("value"));
+					}
 				}
 				scores.put(d.getId(), score);
 			}

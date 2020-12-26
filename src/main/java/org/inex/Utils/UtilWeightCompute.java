@@ -1,6 +1,7 @@
 package org.inex.Utils;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.inex.App.Weight;
 import org.inex.Model.Doc;
@@ -33,18 +34,27 @@ public class UtilWeightCompute {
 	 * @param docSize     Size of the document
 	 * @param docListSize Total size of the documents in the list
 	 * @param avg         Average size of the documents in the list
+	 * @param norm        Document normalization
 	 * @param weighting   Type of weighting (LTN, LTC, BM25, ...)
 	 * @return Computed weight following the selected type
 	 */
-	public static double weight(int fq, int cd, int fd, int docSize, int docListSize, double avg, Weight weighting) {
+	public static double weight(int cd, int fd, int docSize, int docListSize, double avg, Map<String, Double> norm,
+			Weight weighting) {
 		double weight = 0;
 		switch (weighting) {
 			case LTN:
-				if (cd != 0) {
+				if (fd != 0 && cd != 0) {
 					double tfd = 1 + Math.log10(fd);
-					double tfq = 1 + Math.log10(fq);
 					double idf = Math.log10(docListSize / cd);
-					weight = tfd * idf * tfq * idf;
+					weight = tfd * idf;
+				}
+				break;
+			case LTC:
+				if (fd != 0 && cd != 0) {
+					double tfd = 1 + Math.log10(fd);
+					double idf = Math.log10(docListSize / cd);
+					weight = tfd * idf;
+					norm.put("value", norm.get("value") + Math.pow(weight, 2));
 				}
 				break;
 			case BM25:
