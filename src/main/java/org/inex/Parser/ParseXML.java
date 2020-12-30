@@ -9,7 +9,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +26,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.FileUtils;
 import org.inex.Model.Doc;
+import org.inex.Utils.UtilTextTransformation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -30,70 +34,54 @@ import org.xml.sax.SAXException;
 
 public class ParseXML {
 
-	/***************/
-	/** CONSTANTS **/
-	/***************/
-
 	private static final String PATH_DESTINATION_FOLDER = "./files/input/xml/tmpFolder";
 
-	/***************/
-	/** FUNCTIONS **/
-	/***************/
-
-	/************************/
-	/** Decompression work **/
-	/************************/
-
-	// Extract files from a *.tar.gz compressed file and put them in a temporary
-	// folder
+	/**
+	 * Extract files from a *.tar.gz archive and put them in a temporary folder
+	 * 
+	 * @param pathInputXml Path to the archive that contain XML files
+	 * @throws IOException
+	 */
 	public static void extractTarGzXmlFiles(String pathInputXml) throws IOException {
-		try (TarArchiveInputStream tarStream = new TarArchiveInputStream(
-				new GzipCompressorInputStream(new FileInputStream(pathInputXml)))) {
-
-			TarArchiveEntry tarArchiveEntry;
-			while ((tarArchiveEntry = tarStream.getNextTarEntry()) != null) {
-				if (tarArchiveEntry.isDirectory()) {
-					continue;
-				}
-				File file = new File(PATH_DESTINATION_FOLDER, tarArchiveEntry.getName());
-				File parentFile = file.getParentFile();
-				if (!parentFile.exists()) {
-					parentFile.mkdirs();
-				}
-				IOUtils.copy(tarStream, new FileOutputStream(file));
+		FileInputStream fileStream = new FileInputStream(pathInputXml);
+		GzipCompressorInputStream gzipStream = new GzipCompressorInputStream(fileStream);
+		TarArchiveInputStream tarStream = new TarArchiveInputStream(gzipStream);
+		TarArchiveEntry tarArchiveEntry = null;
+		while ((tarArchiveEntry = tarStream.getNextTarEntry()) != null) {
+			if (tarArchiveEntry.isDirectory()) {
+				continue;
 			}
-
-		} catch (IOException ex) {
-			throw ex;
+			File file = new File(PATH_DESTINATION_FOLDER, tarArchiveEntry.getName());
+			File parentFile = file.getParentFile();
+			if (!parentFile.exists()) {
+				parentFile.mkdirs();
+			}
+			IOUtils.copy(tarStream, new FileOutputStream(file));
 		}
 	}
 
-	// Scan the temporary xml folder and return the list of the xml files
+	/**
+	 * Scan the temporary XML folder and return the list of the XML files
+	 * 
+	 * @return List with the content of the XML files
+	 * @throws IOException
+	 */
 	public static List<String> getXmlPathList() throws IOException {
 		Path originFolder = Paths.get(PATH_DESTINATION_FOLDER);
-		List<String> fileList = null;
-
-		try (Stream<Path> stream = Files.walk(originFolder, 255)) {
-			fileList = stream.filter(file -> file.getFileName().toString().endsWith(".xml")).map(String::valueOf)
-					.sorted().collect(Collectors.toList());
-		}
-
+		Stream<Path> stream = Files.walk(originFolder, 255);
+		List<String> fileList = stream.filter(file -> file.getFileName().toString().endsWith(".xml"))
+				.map(String::valueOf).sorted().collect(Collectors.toList());
+		stream.close();
 		return fileList;
 	}
 
-	// Simple display of the fileList for debug purpose
-	public static void displayList(int limit) throws IOException {
-		List<String> fileList = getXmlPathList();
-		for (int i = 0; i < limit; i++) {
-			System.out.println(fileList.get(i).toString());
-		}
-	}
-
-	// Moves all *.xml files from all subfolders to the root directory.
-	// Doit être retravaillée, a un problème
+	/**
+	 * Moves all *.xml files from subfolders to the root directory [NEED REWORK]
+	 * 
+	 * @throws IOException
+	 */
 	public static void filesGathering() throws IOException {
 		List<String> fileList = getXmlPathList();
-
 		fileList.forEach(file -> {
 			try {
 				if (file.endsWith(".xml")) {
@@ -103,20 +91,30 @@ public class ParseXML {
 				e.printStackTrace();
 			}
 		});
-
 	}
 
-	// Delete the temporary folder when the data extraction from the xml files is
-	// done
+	/**
+	 * Delete temporary folder when data extraction is done
+	 * 
+	 * @throws IOException
+	 */
 	public static void deleteTmpXmlFolder() throws IOException {
 		FileUtils.deleteDirectory(new File(PATH_DESTINATION_FOLDER));
 	}
 
-	/*****************/
-	/** Extract XML **/
-	/*****************/
+	/**
+	 * Parse the content of the XML file
+	 * 
+	 * @param pathFileXml   Path to the XML file
+	 * @param applyStemming Boolean to choose using stemming during parsing
+	 * @return Parsed content as an object Doc
+	 * @throws ParserConfigurationException
+	 * @throws SAXException
+	 * @throws IOException
+	 */
+	public static Doc parseXmlFile(String pathFileXml, boolean applyStemming)
+			throws ParserConfigurationException, SAXException, IOException {
 
-	public static Doc parseXmlFile(String pathInputXml, boolean applyStemming) throws ParserConfigurationException, SAXException, IOException {
 		// Get Document Builder
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
@@ -130,40 +128,56 @@ public class ParseXML {
 
 		// Build Document
 		DocumentBuilder builder = factory.newDocumentBuilder();
-		Document document = builder.parse(new File(pathInputXml));
+		Document document = builder.parse(new File(pathFileXml));
 
 		// Normalize the XML Structure; It's just too important !!
 		document.getDocumentElement().normalize();
 
-		// Get all content of tag id
-		NodeList iList = document.getElementsByTagName("id");
+		// Get id content
+		String id = document.getElementsByTagName("id").item(1).getTextContent();
 
 		// Get all content of tag article
-		NodeList nList = document.getElementsByTagName("article");
+		NodeList list = document.getElementsByTagName("article");
 
-		// Visit all child nodes of id
-		String id = visitChildNodes(iList);
-		String[] ids = id.trim().split(" ");
+		// Create a map where content will be separated by elements (XML tags)
+		Map<String, ArrayList<String>> elements = new HashMap<>();
 
 		// Visit all child nodes of article
-		String content = visitChildNodes(nList);
+		visitChildNodes(list, elements, "", applyStemming);
 
-		// Add id and content to doc and return it
-		return new Doc(ids[0], content, applyStemming);
+		// Create Doc object using the id and elements of the parsed file
+		Doc doc = new Doc(id, elements);
+
+		// Return the document
+		return doc;
+
 	}
 
-	private static String visitChildNodes(NodeList nList) {
-		String s = "";
-		for (int temp = 0; temp < nList.getLength(); temp++) {
-			Node node = nList.item(temp);
+	/**
+	 * Visit all child of the nodes in the list
+	 * 
+	 * @param list          Contain nodes in the same depth
+	 * @param elements      Map to store nodes path and content
+	 * @param parent        Path formed by the concatenation of the node's ancestors
+	 *                      paths
+	 * @param applyStemming Boolean to choose using stemming during parsing
+	 * @throws IOException
+	 */
+	private static void visitChildNodes(NodeList list, Map<String, ArrayList<String>> elements, String parent,
+			boolean applyStemming) throws IOException {
+		int index = 0;
+		for (int temp = 0; temp < list.getLength(); temp++) {
+			Node node = list.item(temp);
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				s = s + " " + node.getTextContent();
+				index++;
+				String key = parent + node.getNodeName() + "[" + index + "]";
+				ArrayList<String> value = UtilTextTransformation.cleanContentList(node.getTextContent(), applyStemming);
+				elements.put(key, value);
 				if (node.hasChildNodes()) {
-					visitChildNodes(node.getChildNodes());
+					visitChildNodes(node.getChildNodes(), elements, key + "/", applyStemming);
 				}
 			}
 		}
-		return s;
 	}
 
 }

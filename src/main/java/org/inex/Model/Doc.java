@@ -2,69 +2,44 @@ package org.inex.Model;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
+import java.util.Map;
 
 import org.inex.Utils.UtilTextTransformation;
 
 public class Doc {
 
-	/***************/
-	/** VARIABLES **/
-	/***************/
-
 	private String id;
-
 	private String content;
-
 	private ArrayList<String> contentList;
-
-	/***************/
-	/** FUNCTIONS **/
-	/***************/
-
-	private String contentTransform(String content) {
-
-		return content;
-	}
-
-	private ArrayList<String> generateContentList() {
-
-		ArrayList<String> contentList = new ArrayList<>();
-
-		return contentList;
-	}
-
-	/******************/
-	/** CONSTRUCTORS **/
-	/******************/
+	private Map<String, ArrayList<String>> elements;
 
 	public Doc() {
 	}
 
+	/**
+	 * Constructor used for parsing text file
+	 * 
+	 * @param id            Identifier of the document
+	 * @param content       Parsed content of the document
+	 * @param applyStemming Boolean to choose using stemming during parsing
+	 * @throws IOException
+	 */
 	public Doc(String id, String content, boolean applyStemming) throws IOException {
-		this.setId(id);
-		this.setContent(content);
-
+		this.id = id;
+		this.content = content;
 		this.contentList = UtilTextTransformation.cleanContentList(content, applyStemming);
-
-		/*
-		content = content.replaceAll("[^a-zA-Z]", " ").toLowerCase().concat(" ");
-		String[] words = content.split(" ");
-		this.contentList = new ArrayList<String>();
-		for (String word : words) {
-			if (Pattern.matches(".*[a-zA-Z]+.*", word)) {
-				this.contentList.add(word);
-			}
-
-		}
-		*/
-
 	}
 
-
-	/*************************/
-	/** GETTERS AND SETTERS **/
-	/*************************/
+	/**
+	 * Constructor used for parsing XML files
+	 * 
+	 * @param id       Identifier of the document
+	 * @param elements Parsed elements of the document
+	 */
+	public Doc(String id, Map<String, ArrayList<String>> elements) {
+		this.id = id;
+		this.elements = elements;
+	}
 
 	public String getId() {
 		return id;
@@ -84,6 +59,18 @@ public class Doc {
 
 	public ArrayList<String> getContentList() {
 		return contentList;
+	}
+
+	public void setContentList(ArrayList<String> contentList) {
+		this.contentList = contentList;
+	}
+
+	public Map<String, ArrayList<String>> getElements() {
+		return elements;
+	}
+
+	public void setElements(Map<String, ArrayList<String>> elements) {
+		this.elements = elements;
 	}
 
 }

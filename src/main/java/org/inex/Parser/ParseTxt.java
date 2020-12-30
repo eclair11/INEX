@@ -14,10 +14,14 @@ import org.inex.Model.Doc;
 
 public class ParseTxt {
 
-	/***************/
-	/** FUNCTIONS **/
-	/***************/
-
+	/**
+	 * Parse the content of the text file
+	 * 
+	 * @param pathInputTxt  Path to the archive that contain the text file
+	 * @param applyStemming Boolean to choose using stemming during parsing
+	 * @return Parsed content as an array of Doc
+	 * @throws IOException
+	 */
 	public static ArrayList<Doc> extractTxt(String pathInputTxt, boolean applyStemming) throws IOException {
 		ArrayList<Doc> docList = new ArrayList<>();
 		String docId = "";
