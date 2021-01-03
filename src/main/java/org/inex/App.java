@@ -3,6 +3,7 @@ package org.inex;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,9 +50,19 @@ public class App {
 	}
 
 	public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-		read(false, Weight.LTN, Input.TXT);
+		read(false, Weight.LTN, Input.XML);
 	}
 
+	/**
+	 * Main program to generate a run from the input documents
+	 * 
+	 * @param applyStemming Boolean to choose using stemming during parsing
+	 * @param weighting     Type of weighting (LTN, LTC, BM25, ...)
+	 * @param input         Type of the documents (Text or XML)
+	 * @throws IOException
+	 * @throws ParserConfigurationException
+	 * @throws SAXException
+	 */
 	public static void read(boolean applyStemming, Weight weighting, Input input)
 			throws IOException, ParserConfigurationException, SAXException {
 		ArrayList<Doc> docList = new ArrayList<>();
@@ -59,6 +70,7 @@ public class App {
 		switch (input) {
 			case TXT:
 				docList = ParseTxt.extractTxt(PATH_INPUT_TXT, applyStemming);
+				createRun(docList, requestList, weighting);
 				break;
 			case XML:
 				ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
@@ -67,18 +79,16 @@ public class App {
 					Doc doc = ParseXML.parseXmlFile(path, applyStemming);
 					docList.add(doc);
 				}
+				createRunElements(docList, requestList, weighting);
+				// ParseXML.deleteTmpXmlFolder();
 				break;
 			default:
 				break;
 		}
-		createRun(docList, requestList, weighting);
-		if (input.equals(Input.XML)) {
-			// ParseXML.deleteTmpXmlFolder();
-		}
 	}
 
 	/**
-	 * Compute the score of the documents in the list for each request
+	 * Compute the score (articles) of the documents for each request
 	 * 
 	 * @param docList     List containing all the documents in the input file
 	 * @param requestList List containing all the requests in the request file
@@ -110,6 +120,53 @@ public class App {
 					}
 				}
 				scores.add(new Score(d.getId(), score, "/article[1]"));
+			}
+			inex = inex + writeRequestResult(id, scores);
+		}
+		writeRunResult(inex);
+	}
+
+	/**
+	 * Compute the score (elements) of the documents for each request
+	 * 
+	 * @param docList     List containing all the documents in the input file
+	 * @param requestList List containing all the requests in the request file
+	 * @param weighting   Type of weighting (LTN, LTC, BM25, ...)
+	 */
+	public static void createRunElements(ArrayList<Doc> docList, ArrayList<Request> requestList, Weight weighting) {
+		String inex = "";
+		ArrayList<Score> scores = new ArrayList<>();
+		Map<String, Double> norm = new HashMap<>();
+		Map<String, Double> scoreByNode = new HashMap<>();
+		int docListSize = docList.size();
+		double avg = 0;
+		for (int i = 0; i < 1; i++) {
+			String id = requestList.get(i).getId();
+			ArrayList<String> terms = requestList.get(i).getTermList();
+			ArrayList<Map<String, Integer>> dfs = UtilFrequencyCompute.docFreqElements(docList, terms);
+			for (Doc d : docList) {
+				scoreByNode.clear();
+				norm.put("value", 0.0);
+				ArrayList<Map<String, Integer>> tfs = UtilFrequencyCompute.termFreqElements(d, terms);
+				for (int j = 0; j < terms.size(); j++) {
+					for (String k : tfs.get(j).keySet()) {
+						if (dfs.get(j).get(k) != null) {
+							int docSize = d.getElements().get(k).size();
+							int df = dfs.get(j).get(k);
+							int tf = tfs.get(j).get(k);
+							double score = UtilWeightCompute.weight(df, tf, docSize, docListSize, avg, norm, weighting);
+							if (scoreByNode.containsKey(k)) {
+								scoreByNode.put(k, scoreByNode.get(k) + score);
+							} else {
+								scoreByNode.put(k, score);
+							}
+						}
+					}
+				}
+				if (scoreByNode.size() > 0) {
+					String k = Collections.max(scoreByNode.keySet());
+					scores.add(new Score(d.getId(), scoreByNode.get(k), "/" + k));
+				}
 			}
 			inex = inex + writeRequestResult(id, scores);
 		}

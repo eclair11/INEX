@@ -134,7 +134,7 @@ public class ParseXML {
 		document.getDocumentElement().normalize();
 
 		// Get id content
-		String id = document.getElementsByTagName("id").item(1).getTextContent();
+		String id = document.getElementsByTagName("id").item(0).getTextContent();
 
 		// Get all content of tag article
 		NodeList list = document.getElementsByTagName("article");
@@ -171,8 +171,10 @@ public class ParseXML {
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
 				index++;
 				String key = parent + node.getNodeName() + "[" + index + "]";
-				ArrayList<String> value = UtilTextTransformation.cleanContentList(node.getTextContent(), applyStemming);
-				elements.put(key, value);
+				if (node.getNodeName().equals("p")) {
+					ArrayList<String> value = UtilTextTransformation.cleanContentList(node.getTextContent(), applyStemming);
+					elements.put(key, value);
+				}
 				if (node.hasChildNodes()) {
 					visitChildNodes(node.getChildNodes(), elements, key + "/", applyStemming);
 				}
