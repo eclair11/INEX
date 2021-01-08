@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -33,7 +35,7 @@ public class App {
 	private static final String PATH_QUERY = "./files/request/topics_M2WI7Q_2020_21.txt";
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_XX_XX_LTN_articles.txt";
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_09_BM25_elements_k0.5b0.3_p.txt";
 
 	/**
 	 * Custom enum class to define weighting types
@@ -50,15 +52,15 @@ public class App {
 	}
 
 	public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-		read(false, Weight.LTN, Input.XML);
+		read(false, Weight.BM25, Input.XML);
 	}
 
 	/**
 	 * Main program to generate a run from the input documents
 	 * 
 	 * @param applyStemming Boolean to choose using stemming during parsing
-	 * @param weighting     Type of weighting (LTN, LTC, BM25, ...)
-	 * @param input         Type of the documents (Text or XML)
+	 * @param weighting     Type of weighting (LTN, LTC, BM25)
+	 * @param input         Type of the documents (TXT or XML)
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 * @throws SAXException
@@ -92,34 +94,32 @@ public class App {
 	 * 
 	 * @param docList     List containing all the documents in the input file
 	 * @param requestList List containing all the requests in the request file
-	 * @param weighting   Type of weighting (LTN, LTC, BM25, ...)
+	 * @param weighting   Type of weighting (LTN, LTC, BM25)
 	 */
 	public static void createRun(ArrayList<Doc> docList, ArrayList<Request> requestList, Weight weighting) {
 		String inex = "";
-		ArrayList<Score> scores = new ArrayList<>();
-		Map<String, Double> norm = new HashMap<>();
 		int docListSize = docList.size();
 		double avg = UtilWeightCompute.avg(docList);
 		for (int i = 0; i < requestList.size(); i++) {
 			String id = requestList.get(i).getId();
+			Map<String, Score> scores = new HashMap<>();
 			ArrayList<String> terms = requestList.get(i).getTermList();
 			ArrayList<Integer> dfs = UtilFrequencyCompute.docFreq(docList, terms);
 			for (Doc d : docList) {
-				double score = 0;
-				norm.put("value", 0.0);
+				Score score = new Score("/article[1]", 0, 0);
 				int docSize = d.getContentList().size();
 				ArrayList<Integer> tfs = UtilFrequencyCompute.termFreq(d, terms);
 				for (int j = 0; j < terms.size(); j++) {
 					int df = dfs.get(j);
 					int tf = tfs.get(j);
-					score = score + UtilWeightCompute.weight(df, tf, docSize, docListSize, avg, norm, weighting);
+					UtilWeightCompute.weight(score, df, tf, docSize, docListSize, avg, weighting);
 				}
 				if (weighting.equals(Weight.LTC)) {
-					if (norm.get("value") != 0) {
-						score = score / Math.sqrt(norm.get("value"));
+					if (score.getNorm() != 0) {
+						score.setValue(score.getValue() / Math.sqrt(score.getNorm()));
 					}
 				}
-				scores.add(new Score(d.getId(), score, "/article[1]"));
+				scores.put(d.getId(), score);
 			}
 			inex = inex + writeRequestResult(id, scores);
 		}
@@ -131,41 +131,45 @@ public class App {
 	 * 
 	 * @param docList     List containing all the documents in the input file
 	 * @param requestList List containing all the requests in the request file
-	 * @param weighting   Type of weighting (LTN, LTC, BM25, ...)
+	 * @param weighting   Type of weighting (LTN, LTC, BM25)
 	 */
 	public static void createRunElements(ArrayList<Doc> docList, ArrayList<Request> requestList, Weight weighting) {
 		String inex = "";
-		ArrayList<Score> scores = new ArrayList<>();
-		Map<String, Double> norm = new HashMap<>();
-		Map<String, Double> scoreByNode = new HashMap<>();
 		int docListSize = docList.size();
-		double avg = 0;
-		for (int i = 0; i < 1; i++) {
+		double avg = UtilWeightCompute.avgElements(docList);
+		for (int i = 0; i < requestList.size(); i++) {
 			String id = requestList.get(i).getId();
+			Map<String, Score> scores = new HashMap<>();
 			ArrayList<String> terms = requestList.get(i).getTermList();
 			ArrayList<Map<String, Integer>> dfs = UtilFrequencyCompute.docFreqElements(docList, terms);
 			for (Doc d : docList) {
-				scoreByNode.clear();
-				norm.put("value", 0.0);
+				Map<String, Score> scoreByNode = new HashMap<>();
 				ArrayList<Map<String, Integer>> tfs = UtilFrequencyCompute.termFreqElements(d, terms);
 				for (int j = 0; j < terms.size(); j++) {
-					for (String k : tfs.get(j).keySet()) {
-						if (dfs.get(j).get(k) != null) {
-							int docSize = d.getElements().get(k).size();
-							int df = dfs.get(j).get(k);
-							int tf = tfs.get(j).get(k);
-							double score = UtilWeightCompute.weight(df, tf, docSize, docListSize, avg, norm, weighting);
-							if (scoreByNode.containsKey(k)) {
-								scoreByNode.put(k, scoreByNode.get(k) + score);
-							} else {
-								scoreByNode.put(k, score);
-							}
+					for (String node : tfs.get(j).keySet()) {
+						Score score = new Score(node, 0, 0);
+						int nodeSize = d.getElements().get(node).size();
+						int df = dfs.get(j).get(node);
+						int tf = tfs.get(j).get(node);
+						UtilWeightCompute.weight(score, df, tf, nodeSize, docListSize, avg, weighting);
+						if (scoreByNode.containsKey(node)) {
+							score.setValue(score.getValue() + scoreByNode.get(node).getValue());
+							score.setNorm(score.getNorm() + scoreByNode.get(node).getNorm());
+							scoreByNode.put(node, score);
+						} else {
+							scoreByNode.put(node, score);
 						}
 					}
 				}
 				if (scoreByNode.size() > 0) {
-					String k = Collections.max(scoreByNode.keySet());
-					scores.add(new Score(d.getId(), scoreByNode.get(k), "/" + k));
+					String node = Collections.max(scoreByNode.entrySet(), Map.Entry.comparingByValue()).getKey();
+					Score score = scoreByNode.get(node);
+					if (weighting.equals(Weight.LTC)) {
+						if (score.getNorm() != 0) {
+							score.setValue(score.getValue() / Math.sqrt(score.getNorm()));
+						}
+					}
+					scores.put(d.getId(), score);
 				}
 			}
 			inex = inex + writeRequestResult(id, scores);
@@ -180,23 +184,27 @@ public class App {
 	 * @param scores Score of the documents in the list for this request
 	 * @return Ranking of the top 1500 documents with the best score
 	 */
-	private static String writeRequestResult(String id, ArrayList<Score> scores) {
-		String ranking = "";
+	private static String writeRequestResult(String id, Map<String, Score> scores) {
+		String result = "";
 		int rank = 1;
-		scores.sort(Comparator.comparing(Score::getValue).reversed());
-		Iterator<Score> it = scores.iterator();
-		while (rank <= 1500 && it.hasNext()) {
-			Score score = it.next();
-			ranking = ranking + id;
-			ranking = ranking + " " + "Q0";
-			ranking = ranking + " " + score.getId();
-			ranking = ranking + " " + rank;
-			ranking = ranking + " " + score.getValue();
-			ranking = ranking + " " + "EliasNicolas";
-			ranking = ranking + " " + score.getNode() + "\n";
+		Comparator<Entry<String, Score>> comparator = Collections.reverseOrder(Map.Entry.comparingByValue());
+		Map<String, Score> ranking = scores.entrySet().stream().sorted(comparator).collect(Collectors
+				.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+		for (String key : ranking.keySet()) {
+			Score score = ranking.get(key);
+			result = result + id;
+			result = result + " " + "Q0";
+			result = result + " " + key;
+			result = result + " " + rank;
+			result = result + " " + score.getValue();
+			result = result + " " + "EliasNicolas";
+			result = result + " " + score.getNode() + "\n";
 			rank++;
+			if (rank > 1500) {
+				break;
+			}
 		}
-		return ranking;
+		return result;
 	}
 
 	/**

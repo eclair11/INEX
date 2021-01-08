@@ -143,7 +143,7 @@ public class ParseXML {
 		Map<String, ArrayList<String>> elements = new HashMap<>();
 
 		// Visit all child nodes of article
-		visitChildNodes(list, elements, "", applyStemming);
+		visitChildNodes(list, elements, "/", applyStemming);
 
 		// Create Doc object using the id and elements of the parsed file
 		Doc doc = new Doc(id, elements);
@@ -165,11 +165,19 @@ public class ParseXML {
 	 */
 	private static void visitChildNodes(NodeList list, Map<String, ArrayList<String>> elements, String parent,
 			boolean applyStemming) throws IOException {
-		int index = 0;
 		for (int temp = 0; temp < list.getLength(); temp++) {
 			Node node = list.item(temp);
+			int index = 1;
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				index++;
+				Node sibling = node.getPreviousSibling();
+				while (sibling != null) {
+					if (sibling.getNodeType() == Node.ELEMENT_NODE) {
+						if (sibling.getNodeName().equals(node.getNodeName())) {
+							index++;
+						}
+					}
+					sibling = sibling.getPreviousSibling();
+				}
 				String key = parent + node.getNodeName() + "[" + index + "]";
 				if (node.getNodeName().equals("p")) {
 					ArrayList<String> value = UtilTextTransformation.cleanContentList(node.getTextContent(), applyStemming);
