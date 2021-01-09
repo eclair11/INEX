@@ -25,6 +25,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.FileUtils;
+import org.inex.App.Input;
 import org.inex.Model.Doc;
 import org.inex.Utils.UtilTextTransformation;
 import org.w3c.dom.Document;
@@ -112,7 +113,7 @@ public class ParseXML {
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	public static Doc parseXmlFile(String pathFileXml, boolean applyStemming)
+	public static Doc parseXmlFile(String pathFileXml, Input input, boolean applyStemming)
 			throws ParserConfigurationException, SAXException, IOException {
 
 		// Get Document Builder
@@ -139,14 +140,22 @@ public class ParseXML {
 		// Get all content of tag article
 		NodeList list = document.getElementsByTagName("article");
 
-		// Create a map where content will be separated by elements (XML tags)
-		Map<String, ArrayList<String>> elements = new HashMap<>();
+		// Initialize doc object
+		Doc doc = null;
 
-		// Visit all child nodes of article
-		visitChildNodes(list, elements, "/", applyStemming);
-
-		// Create Doc object using the id and elements of the parsed file
-		Doc doc = new Doc(id, elements);
+		if (input.equals(Input.XML_ARTICLES)) {
+			// Visit all child nodes of article
+			String content = visitChildNodesArticles(list);
+			// Create Doc object using the id and article content of the parsed file
+			doc = new Doc(id, content, applyStemming);
+		} else {
+			// Create a map where content will be separated by elements (XML tags)
+			Map<String, ArrayList<String>> elements = new HashMap<>();
+			// Visit all child nodes of article
+			visitChildNodesElements(list, elements, "/", applyStemming);
+			// Create Doc object using the id and elements of the parsed file
+			doc = new Doc(id, elements);
+		}
 
 		// Return the document
 		return doc;
@@ -154,7 +163,27 @@ public class ParseXML {
 	}
 
 	/**
-	 * Visit all child of the nodes in the list
+	 * Visit all child of the nodes in the list (return the article content)
+	 * 
+	 * @param list Contain nodes in the same depth
+	 * @return Content in the list of nodes
+	 */
+	private static String visitChildNodesArticles(NodeList list) {
+		String content = "";
+		for (int temp = 0; temp < list.getLength(); temp++) {
+			Node node = list.item(temp);
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				content = content + " " + node.getTextContent();
+				if (node.hasChildNodes()) {
+					visitChildNodesArticles(node.getChildNodes());
+				}
+			}
+		}
+		return content;
+	}
+
+	/**
+	 * Visit all child of the nodes in the list (return the elements content)
 	 * 
 	 * @param list          Contain nodes in the same depth
 	 * @param elements      Map to store nodes path and content
@@ -163,7 +192,7 @@ public class ParseXML {
 	 * @param applyStemming Boolean to choose using stemming during parsing
 	 * @throws IOException
 	 */
-	private static void visitChildNodes(NodeList list, Map<String, ArrayList<String>> elements, String parent,
+	private static void visitChildNodesElements(NodeList list, Map<String, ArrayList<String>> elements, String parent,
 			boolean applyStemming) throws IOException {
 		for (int temp = 0; temp < list.getLength(); temp++) {
 			Node node = list.item(temp);
@@ -179,12 +208,14 @@ public class ParseXML {
 					sibling = sibling.getPreviousSibling();
 				}
 				String key = parent + node.getNodeName() + "[" + index + "]";
-				if (node.getNodeName().equals("p")) {
-					ArrayList<String> value = UtilTextTransformation.cleanContentList(node.getTextContent(), applyStemming);
+				if (node.getNodeName().equals("p") || node.getNodeName().equals("title")
+						|| node.getNodeName().equals("sec")) {
+					ArrayList<String> value = UtilTextTransformation.cleanContentList(node.getTextContent(),
+							applyStemming);
 					elements.put(key, value);
 				}
 				if (node.hasChildNodes()) {
-					visitChildNodes(node.getChildNodes(), elements, key + "/", applyStemming);
+					visitChildNodesElements(node.getChildNodes(), elements, key + "/", applyStemming);
 				}
 			}
 		}

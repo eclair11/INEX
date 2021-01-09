@@ -35,7 +35,7 @@ public class App {
 	private static final String PATH_QUERY = "./files/request/topics_M2WI7Q_2020_21.txt";
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_09_BM25_elements_k0.5b0.3_p.txt";
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_12_BM25_articles_k0.5b0.3.txt";
 
 	/**
 	 * Custom enum class to define weighting types
@@ -48,11 +48,11 @@ public class App {
 	 * Custom enum class to define input type
 	 */
 	public enum Input {
-		TXT, XML;
+		TXT, XML_ARTICLES, XML_ELEMENTS;
 	}
 
 	public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-		read(false, Weight.BM25, Input.XML);
+		read(false, Weight.BM25, Input.XML_ARTICLES);
 	}
 
 	/**
@@ -69,23 +69,22 @@ public class App {
 			throws IOException, ParserConfigurationException, SAXException {
 		ArrayList<Doc> docList = new ArrayList<>();
 		ArrayList<Request> requestList = ParseRequest.extractRequests(PATH_QUERY, applyStemming);
-		switch (input) {
-			case TXT:
-				docList = ParseTxt.extractTxt(PATH_INPUT_TXT, applyStemming);
+		if (input.equals(Input.TXT)) {
+			docList = ParseTxt.extractTxt(PATH_INPUT_TXT, applyStemming);
+			createRun(docList, requestList, weighting);
+		} else if (input.equals(Input.XML_ARTICLES) || input.equals(Input.XML_ELEMENTS)) {
+			ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
+			List<String> files = ParseXML.getXmlPathList();
+			for (String path : files) {
+				Doc doc = ParseXML.parseXmlFile(path, input, applyStemming);
+				docList.add(doc);
+			}
+			if (input.equals(Input.XML_ARTICLES)) {
 				createRun(docList, requestList, weighting);
-				break;
-			case XML:
-				ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
-				List<String> files = ParseXML.getXmlPathList();
-				for (String path : files) {
-					Doc doc = ParseXML.parseXmlFile(path, applyStemming);
-					docList.add(doc);
-				}
+			} else {
 				createRunElements(docList, requestList, weighting);
-				// ParseXML.deleteTmpXmlFolder();
-				break;
-			default:
-				break;
+			}
+			// ParseXML.deleteTmpXmlFolder();
 		}
 	}
 
