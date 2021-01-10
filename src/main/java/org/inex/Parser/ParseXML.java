@@ -144,10 +144,14 @@ public class ParseXML {
 		Doc doc = null;
 
 		if (input.equals(Input.XML_ARTICLES)) {
+			// Initialize list of links
+			ArrayList<String> links = new ArrayList<>();
 			// Visit all child nodes of article
-			String content = visitChildNodesArticles(list);
+			String content = visitChildNodesArticles(list, links);
 			// Create Doc object using the id and article content of the parsed file
 			doc = new Doc(id, content, applyStemming);
+			// Add links to the created Doc object
+			doc.setLinks(links);
 		} else {
 			// Create a map where content will be separated by elements (XML tags)
 			Map<String, ArrayList<String>> elements = new HashMap<>();
@@ -165,17 +169,29 @@ public class ParseXML {
 	/**
 	 * Visit all child of the nodes in the list (return the article content)
 	 * 
-	 * @param list Contain nodes in the same depth
+	 * @param list  Contain nodes in the same depth
+	 * @param links Contain links of the parsed documents
 	 * @return Content in the list of nodes
 	 */
-	private static String visitChildNodesArticles(NodeList list) {
+	private static String visitChildNodesArticles(NodeList list, ArrayList<String> links) {
 		String content = "";
 		for (int temp = 0; temp < list.getLength(); temp++) {
 			Node node = list.item(temp);
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
 				content = content + " " + node.getTextContent();
+				if (node.getNodeName().equals("link")) {
+					String link = "";
+					for (int i = 0; i < node.getAttributes().getLength(); i++) {
+						if (node.getAttributes().item(i) != null) {
+							link = link + " " + node.getAttributes().item(i);
+						}
+					}
+					if (!link.isEmpty()) {
+						links.add(link);
+					}
+				}
 				if (node.hasChildNodes()) {
-					visitChildNodesArticles(node.getChildNodes());
+					visitChildNodesArticles(node.getChildNodes(), links);
 				}
 			}
 		}

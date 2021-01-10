@@ -12,6 +12,7 @@ public class Doc {
 	private String content;
 	private ArrayList<String> contentList;
 	private Map<String, ArrayList<String>> elements;
+	private ArrayList<String> links;
 
 	public Doc() {
 	}
@@ -71,6 +72,14 @@ public class Doc {
 
 	public void setElements(Map<String, ArrayList<String>> elements) {
 		this.elements = elements;
+	}
+
+	public ArrayList<String> getLinks() {
+		return links;
+	}
+
+	public void setLinks(ArrayList<String> links) {
+		this.links = links;
 	}
 
 }

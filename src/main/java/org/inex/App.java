@@ -35,7 +35,7 @@ public class App {
 	private static final String PATH_QUERY = "./files/request/topics_M2WI7Q_2020_21.txt";
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_12_BM25_articles_k0.5b0.3.txt";
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_13_BM25_articles_k0.5b0.3.txt";
 
 	/**
 	 * Custom enum class to define weighting types
@@ -52,7 +52,7 @@ public class App {
 	}
 
 	public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-		read(false, Weight.BM25, Input.XML_ARTICLES);
+		read(false, Weight.LTN, Input.XML_ARTICLES);
 	}
 
 	/**
