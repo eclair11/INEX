@@ -41,16 +41,32 @@ public class GraphLink {
         this.totalNbIncomingLink = 0;
         this.totalNbOutgoingLink = 0;
 
-        // Init each ArticleVertex of the graph
+        // Init ArticleVertexList of the graph
         this.articleVertexList = new ArrayList<>();
-        docList.forEach(doc -> articleVertexList.add(new ArticleVertex(doc.getId())));
 
         // We build the list of linked article lists
         docList.forEach(doc -> {
             ArrayList<String> linkedArticleList = new ArrayList<>();
-            linkedArticleList =  UtilArticleLink.getAllLinkedArticle(doc.getContent());
+            linkedArticleList =  UtilArticleLink.getAllLinkedArticle(doc.getLinks());            
             this.multiGraph = UtilArticleLink.fillArticleGraphEdge(this.multiGraph, doc.getId(), linkedArticleList);
         });
+
+        // We compute the graph degrees
+        docList.forEach(doc -> {
+
+            String idDoc = doc.getId();
+
+            // liens menant vers ce fichier
+            int inDegree = this.multiGraph.inDegreeOf(idDoc); 
+
+            // liens partant depuis ce fichier vers d'autres fichiers présents dans la collection
+            int outDegree = this.multiGraph.outDegreeOf(idDoc); 
+
+            articleVertexList.add(new ArticleVertex(idDoc, inDegree, outDegree));
+            
+        });
+
+        // articleVertexList.forEach(article -> System.out.println(article));
         
         UtilArticleLink.printGraph(this.multiGraph);
 
@@ -126,6 +142,13 @@ public class GraphLink {
             this.popularity = 0;
         }
 
+        public ArticleVertex(String id, int incomingLink, int outgoingLink) {
+            this.id = id;
+            this.incomingLink = incomingLink;
+            this.outgoingLink = outgoingLink;
+            this.popularity = 0;
+        }
+
         // Getters && Setters
         public String getId() {
             return id;
@@ -157,6 +180,12 @@ public class GraphLink {
 
         public void setPopularity(int popularity) {
             this.popularity = popularity;
+        }
+
+        @Override
+        public String toString() {
+            return "ArticleVertex [id=" + id + ", incomingLink=" + incomingLink + ", outgoingLink=" + outgoingLink
+                    + "]";
         }
 
     }

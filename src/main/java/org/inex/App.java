@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.inex.Model.Doc;
+import org.inex.Model.GraphLink;
 import org.inex.Model.Request;
 import org.inex.Model.Score;
 import org.inex.Parser.ParseRequest;
@@ -81,10 +82,11 @@ public class App {
 			}
 			if (input.equals(Input.XML_ARTICLES)) {
 				createRun(docList, requestList, weighting);
+				new GraphLink(docList);
 			} else {
 				createRunElements(docList, requestList, weighting);
 			}
-			// ParseXML.deleteTmpXmlFolder();
+			ParseXML.deleteTmpXmlFolder();
 		}
 	}
 

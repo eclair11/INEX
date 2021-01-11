@@ -22,8 +22,8 @@ public class UtilArticleLink {
         return multiGraph;
     }
 
-    /** Just some tests  */
-    public static void testGraph(Graph<String, DefaultWeightedEdge> multiGraph){
+    /** Just some tests */
+    public static void testGraph(Graph<String, DefaultWeightedEdge> multiGraph) {
         multiGraph.addVertex("v1");
         multiGraph.addVertex("v2");
         multiGraph.addVertex("v3");
@@ -45,20 +45,28 @@ public class UtilArticleLink {
         System.out.println("Liste des degres sortants de V1 : " + multiGraph.outgoingEdgesOf("v1"));
     }
 
-    /** Receive the list of the articles used in the run and build all the vertexs of the multigraph. 
-     *  @return Graph<String, DefaultWeightedEdge> multiGraph
+    /**
+     * Receive the list of the articles used in the run and build all the vertexs of
+     * the multigraph.
+     * 
+     * @return Graph<String, DefaultWeightedEdge> multiGraph
      */
-    public static Graph<String, DefaultWeightedEdge> fillGraphVertex(Graph<String, DefaultWeightedEdge> multiGraph, ArrayList<String> articleList) {
+    public static Graph<String, DefaultWeightedEdge> fillGraphVertex(Graph<String, DefaultWeightedEdge> multiGraph,
+            ArrayList<String> articleList) {
         articleList.forEach(article -> multiGraph.addVertex(article));
         return multiGraph;
     }
 
-    /** Receive the String content of an article used in the run and build all the edges from the link of the other articles. 
-     *  @return Graph<String, DefaultWeightedEdge> multiGraph
+    /**
+     * Receive the String content of an article used in the run and build all the
+     * edges from the link of the other articles.
+     * 
+     * @return Graph<String, DefaultWeightedEdge> multiGraph
      */
-    public static Graph<String, DefaultWeightedEdge> fillArticleGraphEdge(Graph<String, DefaultWeightedEdge> multiGraph, String currentArticle, ArrayList<String> linkedArticleList) {
+    public static Graph<String, DefaultWeightedEdge> fillArticleGraphEdge(Graph<String, DefaultWeightedEdge> multiGraph,
+            String currentArticle, ArrayList<String> linkedArticleList) {
         linkedArticleList.forEach(linkedArticle -> {
-            if(multiGraph.containsVertex(linkedArticle)){
+            if (multiGraph.containsVertex(linkedArticle)) {
                 multiGraph.addEdge(currentArticle, linkedArticle);
             }
         });
@@ -70,33 +78,36 @@ public class UtilArticleLink {
         Iterator<String> iter = new DepthFirstIterator<>(multiGraph);
         while (iter.hasNext()) {
             String vertex = iter.next();
-            if(multiGraph.edgesOf(vertex) != null){
-                System.out.println("[" + vertex + " ] => " + multiGraph.edgesOf(vertex).toString());
+            if (multiGraph.edgesOf(vertex) != null) {
+                System.out.println("[" + vertex + "] => " + multiGraph.edgesOf(vertex).toString());
             }
-            
         }
     }
 
-    /** 
+    /**
      * Extract all of the linked articles from the content of a given article
      * 
      * @return ArrayList<String> linkedArticleList
      */
-    public static ArrayList<String> getAllLinkedArticle(String article) {
+    public static ArrayList<String> getAllLinkedArticle(ArrayList<String> linkList) {
         ArrayList<String> linkedArticleList = new ArrayList<>();
 
         // Regex to extract only the file id of the article from the link pointing to it
         String regex = "(?<=\\/)([0-9]*)(?=\\.xml)";
         Pattern pattern = Pattern.compile(regex);
 
-        Matcher matcher = pattern.matcher(article);
+        linkList.forEach(link -> {
+            Matcher matcher = pattern.matcher(link);
 
-        while (matcher.find()) {
-            linkedArticleList.add(matcher.group());
-        }
+            while (matcher.find()) {
+                linkedArticleList.add(matcher.group());
+            }
+        });
 
+        /*
         System.out.println("\nListe des articles pointés par un lien dans l'article:");
         linkedArticleList.forEach(linkedArticle -> System.out.println(linkedArticle));
+        */
 
         return linkedArticleList;
     }
@@ -106,12 +117,11 @@ public class UtilArticleLink {
      * @param docList
      * @return ArrayList<String> articleList
      */
-    public static ArrayList<String> createArticleList(ArrayList<Doc> docList){
+    public static ArrayList<String> createArticleList(ArrayList<Doc> docList) {
         ArrayList<String> articleList = new ArrayList<>();
         docList.forEach(doc -> articleList.add(doc.getId()));
         return articleList;
     }
-
 
     /**********/
     /** Main **/
@@ -125,10 +135,10 @@ public class UtilArticleLink {
 
         // Test de récupération de l'id des articles dans une chaine
         String test = "<link xlink:type=\"simple\" xlink:href=\"../442/14986442.xml\">"
-        + "<link xlink:type=\"simple\" xlink:href=\"../827/18753827.xml\">"
-        + "<link xlink:type=\"simple\" xlink:href=\"../631/226631.xml\">";
-        getAllLinkedArticle(test);
+                + " <link xlink:type=\"simple\" xlink:href=\"../827/18753827.xml\">"
+                + " <link xlink:type=\"simple\" xlink:href=\"../631/226631.xml\">";
+        //getAllLinkedArticle(test);
 
     }
-    
+
 }
