@@ -57,18 +57,21 @@ public class GraphLink {
             String idDoc = doc.getId();
 
             // liens menant vers ce fichier
-            int inDegree = this.multiGraph.inDegreeOf(idDoc); 
+            int inDegree = this.multiGraph.inDegreeOf(idDoc);
 
             // liens partant depuis ce fichier vers d'autres fichiers présents dans la collection
-            int outDegree = this.multiGraph.outDegreeOf(idDoc); 
+            int outDegree = this.multiGraph.outDegreeOf(idDoc);
 
-            articleVertexList.add(new ArticleVertex(idDoc, inDegree, outDegree));
+            // popularity computing
+            double popularity = Math.log10(inDegree);
+
+            articleVertexList.add(new ArticleVertex(idDoc, inDegree, outDegree, popularity));
             
         });
 
         // articleVertexList.forEach(article -> System.out.println(article));
         
-        UtilArticleLink.printGraph(this.multiGraph);
+        // UtilArticleLink.printGraph(this.multiGraph);
 
     }
 
@@ -128,7 +131,7 @@ public class GraphLink {
 
         private int outgoingLink; // Out-degrees / Liens sortants
 
-        private int popularity; // Need to be computed
+        private double popularity; // Need to be computed
 
         // Constructors
         public ArticleVertex() {
@@ -142,11 +145,11 @@ public class GraphLink {
             this.popularity = 0;
         }
 
-        public ArticleVertex(String id, int incomingLink, int outgoingLink) {
+        public ArticleVertex(String id, int incomingLink, int outgoingLink, double popularity) {
             this.id = id;
             this.incomingLink = incomingLink;
             this.outgoingLink = outgoingLink;
-            this.popularity = 0;
+            this.popularity = popularity;
         }
 
         // Getters && Setters
@@ -174,11 +177,11 @@ public class GraphLink {
             this.outgoingLink = outgoingLink;
         }
 
-        public int getPopularity() {
+        public double getPopularity() {
             return popularity;
         }
 
-        public void setPopularity(int popularity) {
+        public void setPopularity(double popularity) {
             this.popularity = popularity;
         }
 

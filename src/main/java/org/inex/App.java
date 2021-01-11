@@ -69,10 +69,11 @@ public class App {
 	public static void read(boolean applyStemming, Weight weighting, Input input)
 			throws IOException, ParserConfigurationException, SAXException {
 		ArrayList<Doc> docList = new ArrayList<>();
+		GraphLink linkList = null;
 		ArrayList<Request> requestList = ParseRequest.extractRequests(PATH_QUERY, applyStemming);
 		if (input.equals(Input.TXT)) {
 			docList = ParseTxt.extractTxt(PATH_INPUT_TXT, applyStemming);
-			createRun(docList, requestList, weighting);
+			createRun(docList, linkList, requestList, weighting);
 		} else if (input.equals(Input.XML_ARTICLES) || input.equals(Input.XML_ELEMENTS)) {
 			ParseXML.extractTarGzXmlFiles(PATH_INPUT_XML);
 			List<String> files = ParseXML.getXmlPathList();
@@ -81,8 +82,8 @@ public class App {
 				docList.add(doc);
 			}
 			if (input.equals(Input.XML_ARTICLES)) {
-				createRun(docList, requestList, weighting);
-				new GraphLink(docList);
+				linkList = new GraphLink(docList);
+				createRun(docList, linkList, requestList, weighting);
 			} else {
 				createRunElements(docList, requestList, weighting);
 			}
@@ -94,10 +95,12 @@ public class App {
 	 * Compute the score (articles) of the documents for each request
 	 * 
 	 * @param docList     List containing all the documents in the input file
+	 * @param linkList    List containing the links pointed by all documents
 	 * @param requestList List containing all the requests in the request file
 	 * @param weighting   Type of weighting (LTN, LTC, BM25)
 	 */
-	public static void createRun(ArrayList<Doc> docList, ArrayList<Request> requestList, Weight weighting) {
+	public static void createRun(ArrayList<Doc> docList, GraphLink linkList, ArrayList<Request> requestList,
+			Weight weighting) {
 		String inex = "";
 		int docListSize = docList.size();
 		double avg = UtilWeightCompute.avg(docList);
@@ -118,6 +121,13 @@ public class App {
 				if (weighting.equals(Weight.LTC)) {
 					if (score.getNorm() != 0) {
 						score.setValue(score.getValue() / Math.sqrt(score.getNorm()));
+					}
+				}
+				if (linkList != null) {
+					double bonus = linkList.getArticleVertexList().stream().filter(doc -> doc.getId().equals(d.getId()))
+							.collect(Collectors.toList()).get(0).getPopularity();
+					if (bonus > 0) {
+						score.setValue(score.getValue() + bonus);
 					}
 				}
 				scores.put(d.getId(), score);
