@@ -224,8 +224,7 @@ public class ParseXML {
 					sibling = sibling.getPreviousSibling();
 				}
 				String key = parent + node.getNodeName() + "[" + index + "]";
-				if (node.getNodeName().equals("p") || node.getNodeName().equals("title")
-						|| node.getNodeName().equals("sec")) {
+				if (node.getNodeName().equals("title") || node.getNodeName().equals("sec")) {
 					ArrayList<String> value = UtilTextTransformation.cleanContentList(node.getTextContent(),
 							applyStemming);
 					elements.put(key, value);

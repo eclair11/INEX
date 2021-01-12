@@ -6,9 +6,9 @@ import org.inex.Utils.UtilArticleLink;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
-    /****************/
-    /** GraphLink  **/
-    /****************/
+/****************/
+/** GraphLink  **/
+/****************/
 
 public class GraphLink {
 
@@ -25,7 +25,7 @@ public class GraphLink {
 
     // Constructors
 
-    public GraphLink(){
+    public GraphLink() {
 
     }
 
@@ -34,7 +34,8 @@ public class GraphLink {
         // Build the list of all xml files
         ArrayList<String> articleList = UtilArticleLink.createArticleList(docList);
 
-        // Create, init the graph with each article as a vertex and compute the size of the graph 
+        // Create, init the graph with each article as a vertex and compute the size of
+        // the graph
         this.multiGraph = UtilArticleLink.createGraph();
         this.multiGraph = UtilArticleLink.fillGraphVertex(this.multiGraph, articleList);
         this.totalNbVertex = this.multiGraph.vertexSet().size();
@@ -47,30 +48,20 @@ public class GraphLink {
         // We build the list of linked article lists
         docList.forEach(doc -> {
             ArrayList<String> linkedArticleList = new ArrayList<>();
-            linkedArticleList =  UtilArticleLink.getAllLinkedArticle(doc.getLinks());            
+            linkedArticleList = UtilArticleLink.getAllLinkedArticle(doc.getLinks());
             this.multiGraph = UtilArticleLink.fillArticleGraphEdge(this.multiGraph, doc.getId(), linkedArticleList);
         });
 
         // We compute the graph degrees
         docList.forEach(doc -> {
-
             String idDoc = doc.getId();
-
-            // liens menant vers ce fichier
             int inDegree = this.multiGraph.inDegreeOf(idDoc);
-
-            // liens partant depuis ce fichier vers d'autres fichiers présents dans la collection
             int outDegree = this.multiGraph.outDegreeOf(idDoc);
-
-            // popularity computing
-            double popularity = Math.log10(inDegree);
-
+            double popularity = (double) inDegree / (docList.size() - 1);
             articleVertexList.add(new ArticleVertex(idDoc, inDegree, outDegree, popularity));
-            
         });
 
         // articleVertexList.forEach(article -> System.out.println(article));
-        
         // UtilArticleLink.printGraph(this.multiGraph);
 
     }
@@ -108,7 +99,6 @@ public class GraphLink {
         this.totalNbOutgoingLink = totalNbOutgoingLink;
     }
 
-    
     public ArrayList<ArticleVertex> getArticleVertexList() {
         return articleVertexList;
     }
@@ -117,12 +107,11 @@ public class GraphLink {
         this.articleVertexList = articleVertexList;
     }
 
-
     /********************/
-    /** ArticleVertex  **/
+    /** ArticleVertex **/
     /********************/
 
-    public class ArticleVertex{
+    public class ArticleVertex {
 
         // Variables
         private String id;
@@ -135,7 +124,7 @@ public class GraphLink {
 
         // Constructors
         public ArticleVertex() {
-            
+
         }
 
         public ArticleVertex(String id) {

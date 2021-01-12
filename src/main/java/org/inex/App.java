@@ -36,13 +36,13 @@ public class App {
 	private static final String PATH_QUERY = "./files/request/topics_M2WI7Q_2020_21.txt";
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
-	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_13_BM25_articles_k0.5b0.3.txt";
+	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_02_26_BM25F_articles_k0.5b0.3_wilkinson.txt";
 
 	/**
-	 * Custom enum class to define weighting types
+	 * Custom enum class to define weighting type
 	 */
 	public enum Weight {
-		LTN, LTC, BM25;
+		LTN, LTC, BM25, BM25F_ROBER, BM25F_WILKI;
 	}
 
 	/**
@@ -52,8 +52,15 @@ public class App {
 		TXT, XML_ARTICLES, XML_ELEMENTS;
 	}
 
+	/**
+	 * Custom enum class to define models to enhance ranking
+	 */
+	public enum Popularity {
+		LINK, ANCHOR;
+	}
+
 	public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-		read(false, Weight.LTN, Input.XML_ARTICLES);
+		read(false, Weight.BM25F_WILKI, Input.XML_ELEMENTS, null);
 	}
 
 	/**
@@ -62,11 +69,12 @@ public class App {
 	 * @param applyStemming Boolean to choose using stemming during parsing
 	 * @param weighting     Type of weighting (LTN, LTC, BM25)
 	 * @param input         Type of the documents (TXT or XML)
+	 * @param pop           Type of the popularity (Link or Anchor)
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 * @throws SAXException
 	 */
-	public static void read(boolean applyStemming, Weight weighting, Input input)
+	public static void read(boolean applyStemming, Weight weighting, Input input, Popularity pop)
 			throws IOException, ParserConfigurationException, SAXException {
 		ArrayList<Doc> docList = new ArrayList<>();
 		GraphLink linkList = null;
@@ -82,7 +90,9 @@ public class App {
 				docList.add(doc);
 			}
 			if (input.equals(Input.XML_ARTICLES)) {
-				linkList = new GraphLink(docList);
+				if (pop.equals(Popularity.LINK)) {
+					linkList = new GraphLink(docList);
+				}
 				createRun(docList, linkList, requestList, weighting);
 			} else {
 				createRunElements(docList, requestList, weighting);
@@ -116,7 +126,7 @@ public class App {
 				for (int j = 0; j < terms.size(); j++) {
 					int df = dfs.get(j);
 					int tf = tfs.get(j);
-					UtilWeightCompute.weight(score, df, tf, docSize, docListSize, avg, weighting);
+					UtilWeightCompute.weight(score, df, tf, docSize, docListSize, avg, weighting, "/article[1]");
 				}
 				if (weighting.equals(Weight.LTC)) {
 					if (score.getNorm() != 0) {
@@ -162,7 +172,7 @@ public class App {
 						int nodeSize = d.getElements().get(node).size();
 						int df = dfs.get(j).get(node);
 						int tf = tfs.get(j).get(node);
-						UtilWeightCompute.weight(score, df, tf, nodeSize, docListSize, avg, weighting);
+						UtilWeightCompute.weight(score, df, tf, nodeSize, docListSize, avg, weighting, node);
 						if (scoreByNode.containsKey(node)) {
 							score.setValue(score.getValue() + scoreByNode.get(node).getValue());
 							score.setNorm(score.getNorm() + scoreByNode.get(node).getNorm());
@@ -181,6 +191,14 @@ public class App {
 						}
 					}
 					scores.put(d.getId(), score);
+				}
+				if (scoreByNode.size() > 0
+						&& (weighting.equals(Weight.BM25F_ROBER) || weighting.equals(Weight.BM25F_WILKI))) {
+					double total = 0;
+					for (String node : scoreByNode.keySet()) {
+						total = total + scoreByNode.get(node).getValue();
+					}
+					scores.put(d.getId(), new Score("/article[1]", total, 0));
 				}
 			}
 			inex = inex + writeRequestResult(id, scores);
