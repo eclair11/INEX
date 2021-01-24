@@ -61,14 +61,12 @@ public class UtilTextTransformation {
         CoreDocument coreDocument = pipeline.processToCoreDocument(content);
         pipeline.annotate(coreDocument);
 
-       
         contentList = coreDocument.tokens().stream().map(coreLabel -> coreLabel.lemma())
                 .collect(Collectors.toCollection(ArrayList<String>::new));
 
         return contentList;
     }
 
-    
     /**********/
     /* Lucene */
     /**********/
@@ -78,12 +76,17 @@ public class UtilTextTransformation {
         ArrayList<String> result = new ArrayList<String>();
         TokenStream tokenStream = analyzer.tokenStream("", content);
         CharTermAttribute attr = tokenStream.addAttribute(CharTermAttribute.class);
-        tokenStream.reset();
+        try {
+            tokenStream.reset();
 
-        while (tokenStream.incrementToken()) {
-            result.add(attr.toString());
+            while (tokenStream.incrementToken()) {
+                result.add(attr.toString());
+            }
+            tokenStream.end();
+
+        } finally {
+            tokenStream.close();
         }
-
         return result;
     }
 
@@ -120,19 +123,14 @@ public class UtilTextTransformation {
                 currentTerm = stemmer.getCurrent();
             }
 
-            
             contentList.set(i, currentTerm);
         }
 
         /*
-        contentList.forEach(term -> {
-            EnglishStemmer stemmer = new EnglishStemmer();
-            stemmer.setCurrent(term);
-            if (stemmer.stem()) {
-                term = stemmer.getCurrent();
-            }
-        });
-        */
+         * contentList.forEach(term -> { EnglishStemmer stemmer = new EnglishStemmer();
+         * stemmer.setCurrent(term); if (stemmer.stem()) { term = stemmer.getCurrent();
+         * } });
+         */
 
         return contentList;
     }
@@ -145,7 +143,7 @@ public class UtilTextTransformation {
 
         ArrayList<String> contentList = tokenizeContent(content, new StopAnalyzer());
         contentList = normalizeContentList(contentList);
-        if(applyStemming){
+        if (applyStemming) {
             contentList = stemmingWord(contentList);
         }
 
