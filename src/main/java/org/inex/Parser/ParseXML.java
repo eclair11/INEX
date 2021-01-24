@@ -35,7 +35,18 @@ import org.xml.sax.SAXException;
 
 public class ParseXML {
 
+	/**
+	 * @param PATH_DESTINATION_FOLDER Path for extracted XML files
+	 * @param ELEMENT_1               Tag content to extract from XML files
+	 * @param ELEMENT_2               Tag content to extract from XML files
+	 * @param ELEMENT_3               Tag content to extract from XML files
+	 * @param ELEMENT_4               Tag content to extract from XML files
+	 */
 	private static final String PATH_DESTINATION_FOLDER = "./files/input/xml/tmpFolder";
+	private static final String ELEMENT_1 = "title";
+	private static final String ELEMENT_2 = "bdy";
+	private static final String ELEMENT_3 = "sec";
+	private static final String ELEMENT_4 = "p";
 
 	/**
 	 * Extract files from a *.tar.gz archive and put them in a temporary folder
@@ -224,7 +235,8 @@ public class ParseXML {
 					sibling = sibling.getPreviousSibling();
 				}
 				String key = parent + node.getNodeName() + "[" + index + "]";
-				if (node.getNodeName().equals("title") || node.getNodeName().equals("sec")) {
+				if (node.getNodeName().equals(ELEMENT_1) || node.getNodeName().equals(ELEMENT_2)
+						|| node.getNodeName().equals(ELEMENT_3) || node.getNodeName().equals(ELEMENT_4)) {
 					ArrayList<String> value = UtilTextTransformation.cleanContentList(node.getTextContent(),
 							applyStemming);
 					elements.put(key, value);
