@@ -33,6 +33,13 @@ public class UtilTextTransformation {
             "outside", "over", "past", "plus", "round", "since", "since", "than", "through", "to", "toward", "under",
             "underneath", "unlike", "until", "up", "upon", "with", "without"));
 
+    /**
+     * 
+     * Removal of stop-words from the content of a document.
+     * 
+     * @param content
+     * @return the list whose stop-words have been removed.
+     */
     private static ArrayList<String> deleteStopWords(String content) {
 
         ArrayList<String> contentList = Stream.of(content.toLowerCase().split(" "))
@@ -48,16 +55,22 @@ public class UtilTextTransformation {
     /* StanfordNLP */
     /***************/
 
+    /**
+     * 
+     * Testing the StanfordNLP library for tokenization and Normalization.
+     * 
+     * @see<a href="https://stanfordnlp.github.io/CoreNLP/api.html">
+     * 
+     * @param content
+     * @return the list of cleaned and normalized tokens
+     */
     public static ArrayList<String> normalizeContentList(String content) {
 
         ArrayList<String> contentList = new ArrayList<String>();
 
-        Properties props = new Properties();
-        // set the list of annotators to run
-        props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,coref");
-        // build pipeline
-        StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-        // create a document object
+        Properties properties = new Properties();
+        properties.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,coref");
+        StanfordCoreNLP pipeline = new StanfordCoreNLP(properties);
         CoreDocument coreDocument = pipeline.processToCoreDocument(content);
         pipeline.annotate(coreDocument);
 
@@ -71,6 +84,17 @@ public class UtilTextTransformation {
     /* Lucene */
     /**********/
 
+    /**
+     * 
+     * Tokenization and deletion of stop-words, from the Lucene Apache library.
+     * 
+     * @see <a href="https://lucene.apache.org/core/7_3_1/core/org/apache/lucene/analysis/package-summary.html">
+     * 
+     * @param content
+     * @param analyzer
+     * @return a list of tokenized terms
+     * @throws IOException
+     */
     public static ArrayList<String> tokenizeContent(String content, Analyzer analyzer) throws IOException {
 
         ArrayList<String> result = new ArrayList<String>();
@@ -90,6 +114,13 @@ public class UtilTextTransformation {
         return result;
     }
 
+    /**
+     * 
+     * Normalization of the token list.
+     * 
+     * @param contentList
+     * @return a list of normaized tokens
+     */
     public static ArrayList<String> normalizeContentList(ArrayList<String> contentList) {
 
         String currentTerm = "";
@@ -108,6 +139,16 @@ public class UtilTextTransformation {
     /* Tartarus */
     /************/
 
+    /**
+     * 
+     * Stemmatization of the list of terms, from the Tartarus library.
+     * 
+     * @see <a href="https://usermanual.wiki/Document/Instructions.1836733729/help">
+     * @see <a href="https://www.programcreek.com/java-api-examples/?api=org.tartarus.snowball.ext.EnglishStemmer">    
+     * 
+     * @param contentList
+     * @return a list of terms passed through the stemming filter.
+     */
     public static ArrayList<String> stemmingWord(ArrayList<String> contentList) {
 
         String currentTerm = "";
@@ -126,19 +167,29 @@ public class UtilTextTransformation {
             contentList.set(i, currentTerm);
         }
 
-        /*
-         * contentList.forEach(term -> { EnglishStemmer stemmer = new EnglishStemmer();
-         * stemmer.setCurrent(term); if (stemmer.stem()) { term = stemmer.getCurrent();
-         * } });
-         */
-
         return contentList;
     }
 
+    /**
+     *
+     * Simple function to display the contents of a list of tokens.
+     * 
+     * @param contentList
+     */
     public static void displayContentList(ArrayList<String> contentList) {
         contentList.forEach(System.out::println);
     }
 
+    /**
+     * 
+     * Main function of tokenization and normalization of the textual content of a
+     * document.
+     * 
+     * @param content
+     * @param applyStemming
+     * @return the list of terms cleaned and passed to the stemming filter.
+     * @throws IOException
+     */
     public static ArrayList<String> cleanContentList(String content, boolean applyStemming) throws IOException {
 
         ArrayList<String> contentList = tokenizeContent(content, new StopAnalyzer());

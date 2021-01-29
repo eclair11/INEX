@@ -104,11 +104,6 @@ public class UtilArticleLink {
             }
         });
 
-        /*
-        System.out.println("\nListe des articles pointés par un lien dans l'article:");
-        linkedArticleList.forEach(linkedArticle -> System.out.println(linkedArticle));
-        */
-
         return linkedArticleList;
     }
 

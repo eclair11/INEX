@@ -34,8 +34,7 @@ public class GraphLink {
         // Build the list of all xml files
         ArrayList<String> articleList = UtilArticleLink.createArticleList(docList);
 
-        // Create, init the graph with each article as a vertex and compute the size of
-        // the graph
+        // Create, init the graph with each article as a vertex and compute the size of the graph
         this.multiGraph = UtilArticleLink.createGraph();
         this.multiGraph = UtilArticleLink.fillGraphVertex(this.multiGraph, articleList);
         this.totalNbVertex = this.multiGraph.vertexSet().size();
@@ -60,9 +59,6 @@ public class GraphLink {
             double popularity = (double) inDegree / (docList.size() - 1);
             articleVertexList.add(new ArticleVertex(idDoc, inDegree, outDegree, popularity));
         });
-
-        // articleVertexList.forEach(article -> System.out.println(article));
-        // UtilArticleLink.printGraph(this.multiGraph);
 
     }
 
