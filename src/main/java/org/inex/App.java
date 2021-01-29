@@ -28,17 +28,17 @@ import org.xml.sax.SAXException;
 public class App {
 
 	/**
-	 * @param PATH_QUERY     Path to the requests file
-	 * @param PATH_INPUT_TXT Path to the txt format documents
-	 * @param PATH_INPUT_XML Path to the xml format documents
-	 * @param PATH_OUTPUT    Path to the run file
+	 * @param PATH_QUERY     Path to the txt file of requests
+	 * @param PATH_INPUT_TXT Path to the txt format collection of documents
+	 * @param PATH_INPUT_XML Path to the xml format collection of documents
+	 * @param PATH_OUTPUT    Path to the output of the txt file run
 	 * @param ALPHA_POPULAR  Adjust the importance of the popularity bonus
 	 */
 	private static final String PATH_QUERY = "./files/request/topics_M2WI7Q_2020_21.txt";
 	private static final String PATH_INPUT_TXT = "./files/input/txt/Text_Only_Ascii_Coll_MWI_NoSem.gz";
 	private static final String PATH_INPUT_XML = "./files/input/xml/XML_Coll_MWI_withSem.tar.gz";
 	private static final String PATH_OUTPUT = "./files/output/EliasNicolas_05_01_BM25_articles_k0.6b0.3.txt";
-	private static final int ALPHA_POPULAR = 64;
+	private static final int ALPHA_POPULAR = 1;
 
 	/**
 	 * Custom enum class to define weighting type
@@ -69,10 +69,10 @@ public class App {
 	/**
 	 * Main program to generate a run from the input documents
 	 * 
-	 * @param applyStemming   Boolean to choose using stemming during parsing
+	 * @param applyStemming   Boolean to choose using stemming during parsing or not
 	 * @param weight          Type of weighting
 	 * @param input           Type of the documents
-	 * @param applyPopularity Boolean to choose using popularity of links
+	 * @param applyPopularity Boolean to choose using popularity of links or not
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 * @throws SAXException
