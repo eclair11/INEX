@@ -26,3 +26,7 @@ buildNumber.properties
 .factorypath
 .project
 .vscode/
+
+files/input/*
+files/output/*
+files/request/*

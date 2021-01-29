@@ -9,8 +9,8 @@ import org.inex.Model.Score;
 public class UtilWeightCompute {
 
 	/**
-	 * @param K           Adjust term frequency saturation for BM25
-	 * @param B           Adjust size normalization for BM25
+	 * @param K Adjust term frequency saturation for BM25
+	 * @param B Adjust size normalization for BM25
 	 */
 	private static final double K = 0.6;
 	private static final double B = 0.3;

@@ -1,8 +1,8 @@
 # Information Retrieval Project: INEX
 
 ## Members
-Elias Romdan
-Nicolas Trotta
+- Elias Romdan
+- Nicolas Trotta
 
 ## Launch Program
 - Open the project in your favorite IDE

@@ -13,10 +13,6 @@ import org.jgrapht.traverse.DepthFirstIterator;
 
 public class UtilArticleLink {
 
-    /*************/
-    /** Methods **/
-    /*************/
-
     public static Graph<String, DefaultWeightedEdge> createGraph() {
         Graph<String, DefaultWeightedEdge> multiGraph = new DirectedWeightedPseudograph<>(DefaultWeightedEdge.class);
         return multiGraph;
@@ -108,32 +104,13 @@ public class UtilArticleLink {
     }
 
     /**
-     * 
-     * @param docList
+     * @param docList List of documents
      * @return ArrayList<String> articleList
      */
     public static ArrayList<String> createArticleList(ArrayList<Doc> docList) {
         ArrayList<String> articleList = new ArrayList<>();
         docList.forEach(doc -> articleList.add(doc.getId()));
         return articleList;
-    }
-
-    /**********/
-    /** Main **/
-    /**********/
-
-    public static void main(String[] args) {
-        // Creation du graph
-        Graph<String, DefaultWeightedEdge> multiGraph = createGraph();
-        testGraph(multiGraph);
-        printGraph(multiGraph);
-
-        // Test de récupération de l'id des articles dans une chaine
-        String test = "<link xlink:type=\"simple\" xlink:href=\"../442/14986442.xml\">"
-                + " <link xlink:type=\"simple\" xlink:href=\"../827/18753827.xml\">"
-                + " <link xlink:type=\"simple\" xlink:href=\"../631/226631.xml\">";
-        //getAllLinkedArticle(test);
-
     }
 
 }
