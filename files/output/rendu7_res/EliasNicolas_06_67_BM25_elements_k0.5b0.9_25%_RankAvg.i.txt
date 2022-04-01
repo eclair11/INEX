@@ -1,0 +1,1 @@
+ERROR *** (rendu7_fol/EliasNicolas_06_67_BM25_elements_k0.5b0.9_25%_RankAvg.trec++) passage overlaps with previously retrieved passages in topic 2009011	article id: 22594	in line: 16
